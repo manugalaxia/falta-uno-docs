@@ -2,7 +2,7 @@
 
 *Fotografía vigente: qué está hecho, qué está pendiente, en qué día del plan estamos. Se actualiza al cierre de cada sesión.*
 
-*Última actualización: 2026-05-19 (Día 1 del Plan Fase 1, parcial).*
+*Última actualización: 2026-05-19 (Día 1 del Plan Fase 1, parcial — Git cerrado, faltan plugins y hosting).*
 
 ---
 
@@ -44,12 +44,12 @@ Convención: 🟢 Completo · 🟡 En curso · 🔴 Bloqueado · ⚪ Pendiente
 - [x] Siete documentos canon creados con esqueletos sembrados desde briefing.
 - [x] Naming convention decidida y registrada (`§22.1` del HISTORIAL).
 - [x] Decisión Bootstrap 5 utilities only registrada (`§22.2`).
+- [x] **Git — repo del código** inicializado en `C:\xampp\htdocs\falta-uno\` con `.gitignore` por allowlist (solo trackea `wp-content/plugins/falta-uno/` y `wp-content/themes/falta-uno/`). Pusheado a `github.com/manugalaxia/falta-uno` (privado). Detalle: `§22.3`.
+- [x] **Git — repo de docs** inicializado en `C:\Proyectos\Falta Uno\` con todos los docs canon + meta-docs (`MANUAL-TRABAJO-CON-CLAUDE.md`, `PROMPT-INICIAL-CLAUDE.md`) + material histórico de `futbol/`. Pusheado a `github.com/manugalaxia/falta-uno-docs` (privado). Detalle: `§22.3`.
 
 ### Pendiente para cerrar Día 1
 
 - [ ] **Cleanup DB:** dropear la DB vieja `faltauno` desde phpMyAdmin (sobra ahora que `falta_uno` es la real).
-- [ ] **Git — repo del código.** Inicializar en `C:\xampp\htdocs\falta-uno\` con `.gitignore` apropiado (excluir core de WP, dejar solo `wp-content/plugins/falta-uno/` y `wp-content/themes/falta-uno/`).
-- [ ] **Git — repo de docs.** Inicializar en `C:\Proyectos\Falta Uno\` con `Docs/` y commit inicial.
 - [ ] **Plugins base de WP:**
   - [ ] Instalar y activar **ACF Pro** (licencia a gestionar — Manu).
   - [ ] Instalar y activar **WP Mail SMTP** (o equivalente).
@@ -65,13 +65,13 @@ Convención: 🟢 Completo · 🟡 En curso · 🔴 Bloqueado · ⚪ Pendiente
 2. **Estilos:** Bootstrap 5 utilities only para MVP. Detalle: `§22.2`.
 3. **Carpeta del workspace de docs:** se mantiene `C:\Proyectos\Falta Uno\` (con espacio).
 4. **Material viejo en `futbol/`:** queda como referencia histórica, no entra al canon. La intención es migrar lo conceptualmente útil a WordPress + Bootstrap.
+5. **Estructura de repos Git:** **dos repos separados** (`falta-uno` para código, `falta-uno-docs` para docs), con allowlist en el `.gitignore` del repo de código y meta-docs como snapshot en el repo de docs. Detalle: `§22.3`. (Cierra la decisión diferida #4 que estaba abierta.)
 
 ## Decisiones diferidas (a cerrar pronto)
 
 1. **Idioma del código y de los datos.** El briefing mezcla nombres en español (`cancha_direccion`, `reserva_estado`) y los hooks de WP están en inglés. Convención sugerida: **datos en español, hooks/APIs WP en inglés (porque vienen así de WP)**. A registrar en `02-GUIAS-TECNICAS.md` cuando se confirme.
 2. **Branding mínimo:** color primario, logo provisorio, dominio definitivo. Aunque sea placeholder, fijarlo evita rehacer el theme dos veces.
 3. **Hosting de producción.**
-4. **Estructura del repo Git:** ¿un solo repo con plugin + theme + docs en subcarpetas, o dos repos separados como dice el arranque original? El arranque dice dos repos — confirmar.
 
 ---
 
@@ -80,11 +80,8 @@ Convención: 🟢 Completo · 🟡 En curso · 🔴 Bloqueado · ⚪ Pendiente
 **Cerrar completamente el Día 1 antes de tocar código.** Plan acordado con Manu el 2026-05-19. Checklist en orden:
 
 1. **Cleanup DB:** dropear `faltauno` vieja desde phpMyAdmin (Manu lo puede hacer antes de la sesión).
-2. **Git — repo del código.** Decidir alcance (¿solo plugin+theme o todo `wp-content`?) e inicializar en `C:\xampp\htdocs\falta-uno\` con `.gitignore` apropiado. Primer commit.
-3. **Git — repo de docs.** Inicializar en `C:\Proyectos\Falta Uno\` con `Docs/` y commit inicial.
-4. **ACF Pro:** Manu trae el ZIP de la licencia → instalar y activar en el WP local. Verificar que las opciones de "Custom Fields" aparezcan en el admin.
-5. **SMTP plugin:** instalar WP Mail SMTP, dejarlo configurado para enviar por Gmail (o equivalente) — todavía sin credenciales reales, solo el plugin listo para configurar.
-6. **Decisión diferida — idioma del código/datos.** Confirmar la sugerencia: datos y meta keys en español, hooks/APIs WP en inglés. Registrar en `02-GUIAS-TECNICAS.md §5`.
-7. **Decisión diferida — estructura de repos.** ¿Uno o dos? Cerrar antes del Git init.
+2. **ACF Pro:** Manu trae el ZIP de la licencia → instalar y activar en el WP local. Verificar que las opciones de "Custom Fields" aparezcan en el admin.
+3. **SMTP plugin:** instalar WP Mail SMTP, dejarlo configurado para enviar por Gmail (o equivalente) — todavía sin credenciales reales, solo el plugin listo para configurar.
+4. **Decisión diferida — idioma del código/datos.** Confirmar la sugerencia: datos y meta keys en español, hooks/APIs WP en inglés. Registrar en `02-GUIAS-TECNICAS.md §5`.
 
-Cuando esos 7 puntos estén cerrados, el Día 1 queda 🟢 y arrancamos el **Día 2 (bootstrap del plugin)** en la sesión siguiente: crear `falta-uno.php` con header WP + clase `FU_Plugin` + autoloader + activación con CPTs (`canchas`, `reservas`), todo validado con `php -l`.
+Cuando esos 4 puntos estén cerrados, el Día 1 queda 🟢 y arrancamos el **Día 2 (bootstrap del plugin)** en la sesión siguiente: crear `falta-uno.php` con header WP + clase `FU_Plugin` + autoloader + activación con CPTs (`canchas`, `reservas`), todo validado con `php -l`. Primer feature del Día 2 inaugura la convención de tags: `fu-plugin-v0.1.0` al cierre del bootstrap.

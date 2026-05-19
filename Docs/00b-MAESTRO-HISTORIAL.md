@@ -70,4 +70,37 @@ Detalle completo en `00-MAESTRO.md §2.6`.
 
 ---
 
-*Próxima entrada: §22.3 (pendiente — todavía no surgió).*
+## §22.3 — 2026-05-19 — Setup Git inicial: dos repos + .gitignore por allowlist
+
+**Caso:** Cerrar el ítem "Git" del Día 1 (Plan Fase 1). Tres sub-decisiones quedaron pendientes hasta esta sesión:
+
+1. ¿Un solo repo (código + docs juntos) o dos repos separados? (Decisión diferida del `§22.1`/ESTADO-ACTUAL.)
+2. ¿Cómo evitar que el core de WordPress termine commiteado, si el repo vive sobre la instalación XAMPP entera?
+3. ¿Dónde van los meta-docs transversales (`MANUAL-TRABAJO-CON-CLAUDE.md`, `PROMPT-INICIAL-CLAUDE.md`) que Manu lleva entre proyectos?
+
+**Decisión:**
+
+1. **Dos repos separados** en GitHub (ambos privados):
+   - `manugalaxia/falta-uno` → código (raíz `C:\xampp\htdocs\falta-uno\`).
+   - `manugalaxia/falta-uno-docs` → docs (raíz `C:\Proyectos\Falta Uno\`).
+2. **Repo de código con `.gitignore` por allowlist:** ignorar `/*` y volver a habilitar selectivamente solo `wp-content/plugins/falta-uno/` y `wp-content/themes/falta-uno/` (+ `.gitignore` y `README.md`). El core de WP, plugins de terceros, themes ajenos, `wp-config.php`, `.env`, `vendor/`, `node_modules/` y logs quedan fuera por construcción, no por listas negras frágiles.
+3. **Meta-docs adentro del repo de docs como snapshot.** `MANUAL-TRABAJO-CON-CLAUDE.md` y `PROMPT-INICIAL-CLAUDE.md` viven en la raíz de `C:\Proyectos\Falta Uno\` y entraron al commit inicial de `falta-uno-docs`. Cuando se actualicen en otro proyecto, se copia la versión nueva sobre estos y se commitea.
+
+**Por qué:**
+
+1. **Dos repos:** distinta cadencia (código cambia con cada feature; docs cambia post-sesión), distinto destino (código va a producción; docs no), distinta visibilidad potencial. Alineado con el `MANUAL-TRABAJO-CON-CLAUDE.md §3.1` que Manu trae de Landing+.
+2. **Allowlist sobre denylist en el `.gitignore` de código:** un `.gitignore` que enumera "todo lo de WP a excluir" se rompe en cuanto WordPress se actualiza y aparece una carpeta nueva. Con allowlist (`/*` + `!` para lo que sí queremos), el repo solo crece cuando agregamos archivos de **nuestro** código — el core de WP es invisible a Git por defecto.
+3. **Meta-docs como snapshot:** la alternativa "fuera de Git, se mueven a mano" pierde trazabilidad — no sabés qué versión del manual estaba vigente cuando se tomó tal decisión. Snapshot adentro del repo de docs es trivial de mantener (copy + commit) y queda atado al estado del proyecto.
+
+**Cómo aplica a futuro:**
+
+- **Cualquier código custom nuevo del MVP** (helpers, scripts de migración, plantillas) vive bajo `wp-content/plugins/falta-uno/` o `wp-content/themes/falta-uno/` para entrar automáticamente al repo. Crear código en otra ruta de la instalación queda explícitamente fuera de Git.
+- **Si en algún momento se agrega un segundo plugin custom** (poco probable pre-MVP), sumarlo al `.gitignore` con `!wp-content/plugins/<nombre>/`.
+- **`wp-config.php` jamás se commitea.** Si se necesita versionar configuración no-sensible, crear un `wp-config-sample.php` o variables de entorno separadas.
+- **Para actualizar los meta-docs:** copiar la versión nueva sobre la actual en `C:\Proyectos\Falta Uno\` y commitear con mensaje tipo `docs: actualizo MANUAL-TRABAJO-CON-CLAUDE al snapshot de YYYY-MM-DD`.
+
+**Estado al cierre:** ambos repos pusheados a GitHub con commit inicial. Repo de código contiene solo `.gitignore` + `README.md` (todavía no existe el plugin ni el theme — eso es Día 2). Repo de docs contiene los 7 docs canon + meta-docs + briefing histórico + material `futbol/`.
+
+---
+
+*Próxima entrada: §22.4 (pendiente — todavía no surgió).*
