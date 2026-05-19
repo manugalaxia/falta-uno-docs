@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FulboApp — Fase 1: Diseño & Arquitectura</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#08080f; font-family:'Segoe UI',system-ui,sans-serif; color:#f0f0f5; min-height:100vh; }
+
+  :root {
+    --green:#00c850; --green-s:rgba(0,200,80,0.12);
+    --blue:#3b82f6;  --blue-s:rgba(59,130,246,0.12);
+    --orange:#f97316; --orange-s:rgba(249,115,22,0.12);
+    --purple:#8b5cf6; --purple-s:rgba(139,92,246,0.12);
+    --gold:#f59e0b;  --gold-s:rgba(245,158,11,0.12);
+    --red:#ef4444;   --red-s:rgba(239,68,68,0.12);
+    --card:#14141e; --border:#1e1e2e; --text2:#8080a0;
+  }
+
+  /* ── Header ── */
+  .header { background:linear-gradient(135deg,#0d1a0d 0%,#08080f 40%,#0d0d1a 100%); padding:40px 36px 32px; border-bottom:1px solid var(--border); }
+  .header-top { display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+  .logo-ball { font-size:32px; }
+  .logo-text { font-size:26px; font-weight:900; letter-spacing:-1px; }
+  .logo-text span { color:var(--green); }
+  .logo-sub { font-size:12px; color:var(--text2); margin-top:2px; }
+  .header-tag { background:var(--green-s); border:1px solid rgba(0,200,80,0.3); color:var(--green); font-size:12px; font-weight:700; padding:4px 12px; border-radius:20px; margin-left:auto; }
+
+  .header-chips { display:flex; gap:10px; flex-wrap:wrap; }
+  .chip { font-size:11px; font-weight:600; padding:4px 12px; border-radius:20px; }
+  .chip-green { background:var(--green-s); color:var(--green); border:1px solid rgba(0,200,80,0.25); }
+  .chip-blue  { background:var(--blue-s);  color:var(--blue);  border:1px solid rgba(59,130,246,0.25); }
+  .chip-orange{ background:var(--orange-s);color:var(--orange);border:1px solid rgba(249,115,22,0.25); }
+  .chip-purple{ background:var(--purple-s);color:var(--purple);border:1px solid rgba(139,92,246,0.25); }
+  .chip-gold  { background:var(--gold-s);  color:var(--gold);  border:1px solid rgba(245,158,11,0.25); }
+
+  /* ── Tabs ── */
+  .tabs { display:flex; gap:0; padding:0 36px; border-bottom:1px solid var(--border); background:#0a0a14; overflow-x:auto; }
+  .tab { padding:14px 20px; font-size:13px; font-weight:600; color:var(--text2); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; white-space:nowrap; }
+  .tab:hover { color:#fff; }
+  .tab.active { color:var(--green); border-bottom-color:var(--green); }
+
+  /* ── Content ── */
+  .content { padding:32px 36px; max-width:1100px; }
+
+  /* ── Section headers ── */
+  .section-title { font-size:20px; font-weight:800; margin-bottom:6px; display:flex; align-items:center; gap:10px; }
+  .section-sub { font-size:13px; color:var(--text2); margin-bottom:24px; }
+  .section-divider { height:1px; background:var(--border); margin:36px 0; }
+
+  /* ── Cards ── */
+  .card { background:var(--card); border-radius:18px; border:1px solid var(--border); padding:20px 22px; }
+  .card-grid { display:grid; gap:14px; }
+  .card-grid-2 { grid-template-columns:1fr 1fr; }
+  .card-grid-3 { grid-template-columns:1fr 1fr 1fr; }
+  .card-grid-4 { grid-template-columns:1fr 1fr 1fr 1fr; }
+
+  /* ── Stack cards ── */
+  .stack-card { background:var(--card); border-radius:18px; border:1px solid var(--border); padding:18px 20px; transition:border-color 0.2s; }
+  .stack-card:hover { border-color:rgba(255,255,255,0.1); }
+  .stack-category { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text2); margin-bottom:10px; }
+  .stack-chosen { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .stack-icon { font-size:24px; }
+  .stack-name { font-size:16px; font-weight:800; }
+  .stack-reason { font-size:12px; color:var(--text2); line-height:1.6; margin-bottom:10px; }
+  .stack-alt { font-size:11px; color:var(--text2); }
+  .stack-alt span { color:#a0a0c0; }
+  .stack-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; margin-left:auto; }
+
+  /* ── Decision table ── */
+  .decision-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .decision-table th { text-align:left; padding:10px 14px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text2); border-bottom:1px solid var(--border); }
+  .decision-table td { padding:11px 14px; border-bottom:1px solid #12121c; vertical-align:middle; }
+  .decision-table tr:last-child td { border-bottom:none; }
+  .decision-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .dt-winner { color:var(--green); font-weight:700; }
+  .dt-loser  { color:var(--text2); text-decoration:line-through; opacity:0.6; }
+  .check { color:var(--green); font-size:14px; }
+  .cross { color:#444; font-size:14px; }
+
+  /* ── Architecture diagram ── */
+  .arch-diagram { background:#0a0a14; border-radius:18px; border:1px solid var(--border); padding:28px; overflow-x:auto; }
+  .arch-layer { display:flex; gap:12px; margin-bottom:0; align-items:center; justify-content:center; flex-wrap:wrap; }
+  .arch-layer-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text2); width:90px; flex-shrink:0; text-align:right; padding-right:14px; }
+  .arch-box { border-radius:12px; padding:10px 14px; font-size:12px; font-weight:600; text-align:center; min-width:110px; border:1px solid; }
+  .arch-arrow { text-align:center; color:var(--text2); font-size:20px; margin:6px 0; }
+  .arch-connector { display:flex; align-items:center; gap:8px; justify-content:center; margin:8px 0; }
+  .arch-line { flex:1; max-width:60px; height:1px; background:var(--border); }
+
+  /* ── DB Schema ── */
+  .db-table { background:var(--card); border-radius:16px; border:1px solid var(--border); overflow:hidden; }
+  .db-table-header { padding:12px 16px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); }
+  .db-table-name { font-size:14px; font-weight:800; }
+  .db-field { display:flex; align-items:center; gap:0; padding:8px 16px; border-bottom:1px solid #10101a; font-size:12px; }
+  .db-field:last-child { border-bottom:none; }
+  .db-pk { font-size:9px; font-weight:700; background:rgba(245,158,11,0.15); color:var(--gold); border:1px solid rgba(245,158,11,0.3); padding:1px 6px; border-radius:8px; margin-right:10px; min-width:28px; text-align:center; }
+  .db-fk { font-size:9px; font-weight:700; background:rgba(59,130,246,0.15); color:var(--blue); border:1px solid rgba(59,130,246,0.3); padding:1px 6px; border-radius:8px; margin-right:10px; min-width:28px; text-align:center; }
+  .db-plain { min-width:44px; margin-right:10px; }
+  .db-field-name { font-weight:600; color:#d0d0e8; flex:1; }
+  .db-field-type { color:var(--text2); font-size:11px; margin-right:10px; }
+  .db-field-note { font-size:10px; color:#5a5a7a; font-style:italic; }
+
+  /* ── UX Flows ── */
+  .flow-container { display:flex; flex-direction:column; gap:0; }
+  .flow-step { display:flex; gap:16px; }
+  .flow-step-left { display:flex; flex-direction:column; align-items:center; width:44px; flex-shrink:0; }
+  .flow-step-num { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; border:2px solid; flex-shrink:0; }
+  .flow-step-line { width:2px; flex:1; min-height:16px; margin:4px 0; }
+  .flow-step-body { flex:1; padding-bottom:20px; }
+  .flow-step-title { font-size:14px; font-weight:700; margin-bottom:4px; }
+  .flow-step-desc { font-size:12px; color:var(--text2); line-height:1.6; }
+  .flow-screen { display:inline-block; background:#0e0e18; border:1px solid #1a1a2e; border-radius:8px; padding:3px 10px; font-size:11px; color:#9090b0; margin-top:6px; margin-right:4px; }
+
+  /* ── Screen mockups ── */
+  .mockup-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px; }
+  .mockup { background:#0e0e18; border-radius:20px; border:1px solid var(--border); overflow:hidden; }
+  .mockup-statusbar { background:#000; height:20px; display:flex; align-items:center; justify-content:flex-end; padding:0 12px; gap:6px; }
+  .mockup-statusbar span { font-size:9px; color:#666; }
+  .mockup-content { padding:14px; }
+  .mockup-title { font-size:11px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; text-align:center; }
+  .m-header { background:#111120; border-radius:10px; padding:10px 12px; margin-bottom:10px; }
+  .m-header-title { font-size:13px; font-weight:700; }
+  .m-header-sub { font-size:10px; color:var(--text2); margin-top:2px; }
+  .m-search { background:#181828; border-radius:10px; padding:9px 12px; margin-bottom:8px; font-size:11px; color:var(--text2); display:flex; align-items:center; gap:8px; border:1px solid #1e1e30; }
+  .m-card { background:#111120; border-radius:10px; padding:10px 12px; margin-bottom:8px; border:1px solid #1a1a2a; }
+  .m-card-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+  .m-card-name { font-size:12px; font-weight:700; }
+  .m-card-price { font-size:12px; font-weight:800; color:var(--green); }
+  .m-card-meta { font-size:10px; color:var(--text2); }
+  .m-card-stars { font-size:10px; color:var(--gold); }
+  .m-btn { border-radius:10px; padding:10px; text-align:center; font-size:12px; font-weight:700; margin-top:8px; }
+  .m-btn-green { background:var(--green); color:#000; }
+  .m-btn-outline { background:transparent; border:1px solid var(--border); color:var(--text2); }
+  .m-slot { display:inline-block; background:#181828; border:1px solid #1e1e30; border-radius:8px; padding:4px 8px; font-size:10px; margin:2px; }
+  .m-slot.sel { background:var(--green-s); border-color:rgba(0,200,80,0.4); color:var(--green); font-weight:700; }
+  .m-tag { display:inline-block; background:#181828; border-radius:6px; padding:2px 8px; font-size:10px; color:var(--text2); margin-right:4px; }
+  .m-divider { height:1px; background:#1a1a28; margin:8px 0; }
+  .m-label { font-size:10px; color:var(--text2); margin-bottom:4px; }
+  .m-value { font-size:12px; font-weight:600; }
+  .m-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #141420; }
+  .m-row:last-child { border-bottom:none; }
+  .m-stat { text-align:center; }
+  .m-stat-val { font-size:18px; font-weight:800; }
+  .m-stat-lbl { font-size:9px; color:var(--text2); }
+  .m-photo { background:linear-gradient(135deg,#1a2a1a,#0a1a0a); border-radius:10px; height:70px; display:flex; align-items:center; justify-content:center; font-size:28px; margin-bottom:8px; }
+
+  /* ── Timeline ── */
+  .timeline { display:flex; gap:0; position:relative; margin:20px 0; }
+  .timeline::before { content:''; position:absolute; left:0; right:0; top:24px; height:2px; background:var(--border); z-index:0; }
+  .tl-item { flex:1; display:flex; flex-direction:column; align-items:center; position:relative; z-index:1; }
+  .tl-dot { width:14px; height:14px; border-radius:50%; margin-bottom:10px; border:2px solid; }
+  .tl-dot.done { background:var(--green); border-color:var(--green); box-shadow:0 0 8px rgba(0,200,80,0.5); }
+  .tl-dot.active { background:var(--blue); border-color:var(--blue); box-shadow:0 0 8px rgba(59,130,246,0.5); }
+  .tl-dot.pending { background:#14141e; border-color:#2a2a3e; }
+  .tl-label { font-size:10px; font-weight:600; color:var(--text2); text-align:center; }
+  .tl-date { font-size:9px; color:#5a5a7a; margin-top:2px; text-align:center; }
+
+  /* ── Risk row ── */
+  .risk-row { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--card); border-radius:14px; border:1px solid var(--border); margin-bottom:8px; }
+  .risk-icon { font-size:20px; }
+  .risk-text { flex:1; font-size:13px; }
+  .risk-badge { font-size:10px; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+
+  /* ── Responsive ── */
+  @media(max-width:800px){
+    .content { padding:20px 18px; }
+    .card-grid-2,.card-grid-3,.card-grid-4 { grid-template-columns:1fr; }
+    .mockup-grid { grid-template-columns:1fr 1fr; }
+    .tabs { padding:0 18px; }
+    .header { padding:28px 20px 24px; }
+  }
+  @media(max-width:500px){
+    .mockup-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div class="logo-ball">⚽</div>
+    <div>
+      <div class="logo-text">Fulbo<span>App</span></div>
+      <div class="logo-sub">Fase 1 — Diseño & Arquitectura · 25 Abr – 4 May 2026</div>
+    </div>
+    <div class="header-tag">🟢 En curso</div>
+  </div>
+  <div class="header-chips">
+    <span class="chip chip-green">⚙️ Stack definido</span>
+    <span class="chip chip-blue">🗄️ DB Schema</span>
+    <span class="chip chip-orange">📱 Flujos UX</span>
+    <span class="chip chip-purple">🏗️ Arquitectura</span>
+    <span class="chip chip-gold">🏟️ 5 canchas piloto</span>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('stack',this)">⚙️ Stack</div>
+  <div class="tab" onclick="showTab('arch',this)">🏗️ Arquitectura</div>
+  <div class="tab" onclick="showTab('db',this)">🗄️ Base de datos</div>
+  <div class="tab" onclick="showTab('ux',this)">📱 Flujos UX</div>
+  <div class="tab" onclick="showTab('screens',this)">🖼️ Pantallas</div>
+  <div class="tab" onclick="showTab('plan',this)">📅 Plan 10 días</div>
+</div>
+
+<!-- ═══════════════════════════ TAB: STACK ═══════════════════════════ -->
+<div class="content" id="tab-stack">
+
+  <div class="section-title" style="color:var(--green);">⚙️ Stack Tecnológico</div>
+  <div class="section-sub">Tecnologías seleccionadas para el MVP. Criterio principal: velocidad de desarrollo + ecosistema argentino de pagos.</div>
+
+  <!-- Stack principal -->
+  <div class="card-grid card-grid-3" style="margin-bottom:20px;">
+
+    <div class="stack-card">
+      <div class="stack-category">📱 Mobile</div>
+      <div class="stack-chosen">
+        <div class="stack-icon">⚛️</div>
+        <div>
+          <div class="stack-name" style="color:var(--blue);">React Native</div>
+          <div style="font-size:11px;color:var(--text2);">con Expo</div>
+        </div>
+        <span class="stack-badge chip-green chip" style="font-size:10px;">✓ Elegido</span>
+      </div>
+      <div class="stack-reason">Un solo código fuente para iOS y Android. Expo acelera el setup y evita problemas nativos en la fase inicial. Enorme pool de devs en Argentina.</div>
+      <div class="stack-alt">Alternativa descartada: <span>Flutter</span> — menor disponibilidad de devs locales, mayor curva de aprendizaje.</div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-category">🔧 Backend & DB</div>
+      <div class="stack-chosen">
+        <div class="stack-icon">⚡</div>
+        <div>
+          <div class="stack-name" style="color:var(--green);">Supabase</div>
+          <div style="font-size:11px;color:var(--text2);">PostgreSQL + Auth + Storage</div>
+        </div>
+        <span class="stack-badge chip-green chip" style="font-size:10px;">✓ Elegido</span>
+      </div>
+      <div class="stack-reason">Todo en uno: base de datos PostgreSQL, autenticación, almacenamiento de fotos y APIs REST/GraphQL generadas automáticamente. Reduce a la mitad el tiempo de backend.</div>
+      <div class="stack-alt">Alternativa descartada: <span>Firebase</span> — NoSQL limita consultas geoespaciales de canchas.</div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-category">💳 Pagos</div>
+      <div class="stack-chosen">
+        <div class="stack-icon">💙</div>
+        <div>
+          <div class="stack-name" style="color:#009ee3;">MercadoPago</div>
+          <div style="font-size:11px;color:var(--text2);">SDK React Native</div>
+        </div>
+        <span class="stack-badge chip-green chip" style="font-size:10px;">✓ Elegido</span>
+      </div>
+      <div class="stack-reason">Dominante en Argentina (80%+ market share). Soporta tarjetas, débito, transferencias y pagos en efectivo (Rapipago/Pago Fácil). SDK bien documentado.</div>
+      <div class="stack-alt">Complemento: <span>Transferencia bancaria</span> como opción manual fallback.</div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-category">🗺️ Mapas & Geolocalización</div>
+      <div class="stack-chosen">
+        <div class="stack-icon">🗺️</div>
+        <div>
+          <div class="stack-name" style="color:var(--blue);">Google Maps</div>
+          <div style="font-size:11px;color:var(--text2);">react-native-maps</div>
+        </div>
+        <span class="stack-badge chip-green chip" style="font-size:10px;">✓ Elegido</span>
+      </div>
+      <div class="stack-reason">Indispensable para mostrar canchas cercanas. Google Places API para autocompletado de direcciones. Places Nearby para búsqueda por radio.</div>
+      <div class="stack-alt">Costo: ~$0 en volumen MVP (límite gratuito generoso).</div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-category">🔔 Push Notifications</div>
+      <div class="stack-chosen">
+        <div class="stack-icon">📲</div>
+        <div>
+          <div class="stack-name" style="color:var(--orange);">Expo Notifications</div>
+          <div style="font-size:11px;color:var(--text2);">+ OneSignal fallback</div>
+        </div>
+        <span class="stack-badge chip-green chip" style="font-size:10px;">✓ Elegido</span>
+      </div>
+      <div class="stack-reason">Integrado directamente en Expo. Cero configuración adicional de APNs/FCM en la fase inicial. Permite notificaciones para confirmaciones, recordatorios y cancelaciones.</div>
+      <div class="stack-alt">OneSignal para analytics avanzados en V2.</div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-category">☁️ Hosting & DevOps</div>
+      <div class="stack-chosen">
+        <div class="stack-icon">▲</div>
+        <div>
+          <div class="stack-name" style="color:#fff;">Vercel + Supabase Cloud</div>
+          <div style="font-size:11px;color:var(--text2);">Free tier → Pro en lanzamiento</div>
+        </div>
+        <span class="stack-badge chip-green chip" style="font-size:10px;">✓ Elegido</span>
+      </div>
+      <div class="stack-reason">Vercel para el panel web de admins. Supabase Cloud para la DB y APIs. GitHub Actions para CI/CD. Costo inicial ~$0 durante desarrollo.</div>
+      <div class="stack-alt">App stores: Expo EAS Build para generar los .ipa y .apk.</div>
+    </div>
+
+  </div>
+
+  <!-- Comparativa React Native vs Flutter -->
+  <div class="section-divider"></div>
+  <div class="section-title" style="color:var(--blue);font-size:16px;">📊 Decisión clave: React Native vs Flutter</div>
+  <div class="section-sub">Por qué React Native es la elección correcta para este MVP con deadline de 47 días</div>
+
+  <div class="card" style="overflow-x:auto;padding:0;">
+    <table class="decision-table">
+      <thead>
+        <tr style="background:#0e0e18;">
+          <th style="min-width:180px;">Criterio</th>
+          <th style="color:var(--blue);">⚛️ React Native + Expo</th>
+          <th style="color:#54d2e0;">🎯 Flutter</th>
+          <th>Veredicto</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:600;">Velocidad de arranque</td>
+          <td class="dt-winner">⚡ Expo → app corriendo en 1 día</td>
+          <td style="color:var(--text2);">Setup más complejo, SDK pesado</td>
+          <td><span style="color:var(--green);font-weight:700;">RN ✓</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;">Pool de devs en Argentina</td>
+          <td class="dt-winner">🏆 Enorme, JS/TS es ubicuo</td>
+          <td style="color:var(--text2);">Dart tiene menos devs locales</td>
+          <td><span style="color:var(--green);font-weight:700;">RN ✓</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;">Integración con MercadoPago</td>
+          <td class="dt-winner">✅ SDK oficial React Native</td>
+          <td style="color:var(--text2);">SDK oficial Flutter (también OK)</td>
+          <td><span style="color:var(--text2);">Empate</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;">Librería de mapas</td>
+          <td class="dt-winner">✅ react-native-maps (madura)</td>
+          <td style="color:var(--text2);">google_maps_flutter (OK)</td>
+          <td><span style="color:var(--text2);">Empate</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;">Performance UI</td>
+          <td style="color:var(--text2);">Buena (con RN New Architecture)</td>
+          <td class="dt-winner">🏆 Excelente, renderizado propio</td>
+          <td><span style="color:#54d2e0;">Flutter ✓</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;">Tiempo al MVP</td>
+          <td class="dt-winner">⚡ 3–4 semanas factible</td>
+          <td style="color:var(--text2);">4–6 semanas estimado</td>
+          <td><span style="color:var(--green);font-weight:700;">RN ✓</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;">Ecosistema de librerías</td>
+          <td class="dt-winner">🏆 npm: miles de paquetes</td>
+          <td style="color:var(--text2);">pub.dev: creciendo pero menor</td>
+          <td><span style="color:var(--green);font-weight:700;">RN ✓</span></td>
+        </tr>
+        <tr style="background:#0d1a0d;">
+          <td style="font-weight:800;color:var(--green);">VEREDICTO FINAL</td>
+          <td style="color:var(--green);font-weight:700;">✅ ELEGIDO</td>
+          <td class="dt-loser" style="text-decoration:none;color:var(--text2);">Descartado para MVP</td>
+          <td><span style="color:var(--green);font-weight:700;font-size:14px;">React Native</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Resumen de costos -->
+  <div class="section-divider"></div>
+  <div class="section-title" style="color:var(--gold);font-size:16px;">💰 Costos de infraestructura (fase MVP)</div>
+
+  <div class="card-grid card-grid-4" style="margin-top:8px;">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:24px;margin-bottom:6px;">⚡</div>
+      <div style="font-size:18px;font-weight:800;color:var(--green);">$0/mes</div>
+      <div style="font-size:12px;font-weight:700;margin:4px 0;">Supabase</div>
+      <div style="font-size:11px;color:var(--text2);">Free tier: 500MB DB, 50k req/mes</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:24px;margin-bottom:6px;">▲</div>
+      <div style="font-size:18px;font-weight:800;color:var(--green);">$0/mes</div>
+      <div style="font-size:12px;font-weight:700;margin:4px 0;">Vercel</div>
+      <div style="font-size:11px;color:var(--text2);">Hobby tier gratis en dev</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:24px;margin-bottom:6px;">🗺️</div>
+      <div style="font-size:18px;font-weight:800;color:var(--green);">~$0/mes</div>
+      <div style="font-size:12px;font-weight:700;margin:4px 0;">Google Maps</div>
+      <div style="font-size:11px;color:var(--text2);">$200 crédito gratis mensual</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:24px;margin-bottom:6px;">💙</div>
+      <div style="font-size:18px;font-weight:800;color:var(--blue);">8–10%</div>
+      <div style="font-size:12px;font-weight:700;margin:4px 0;">MercadoPago</div>
+      <div style="font-size:11px;color:var(--text2);">Comisión por transacción</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════ TAB: ARQUITECTURA ═══════════════════════════ -->
+<div class="content" id="tab-arch" style="display:none;">
+
+  <div class="section-title" style="color:var(--purple);">🏗️ Arquitectura del Sistema</div>
+  <div class="section-sub">Diagrama de componentes y flujo de datos del MVP de FulboApp</div>
+
+  <!-- Diagrama visual -->
+  <div class="arch-diagram" style="margin-bottom:24px;">
+
+    <!-- Capa: Usuarios -->
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);width:90px;text-align:right;">CLIENTES</div>
+      <div style="display:flex;gap:10px;flex:1;flex-wrap:wrap;">
+        <div class="arch-box" style="background:var(--blue-s);border-color:rgba(59,130,246,0.35);color:var(--blue);">📱 App Jugador<br><span style="font-size:10px;opacity:0.7;">iOS / Android</span></div>
+        <div class="arch-box" style="background:var(--orange-s);border-color:rgba(249,115,22,0.35);color:var(--orange);">⚙️ Panel Admin<br><span style="font-size:10px;opacity:0.7;">Web (Vercel)</span></div>
+        <div class="arch-box" style="background:var(--purple-s);border-color:rgba(139,92,246,0.35);color:var(--purple);">🏟️ App Dueño<br><span style="font-size:10px;opacity:0.7;">iOS / Android</span></div>
+      </div>
+    </div>
+
+    <div class="arch-arrow">↕ HTTPS / REST API</div>
+
+    <!-- Capa: API Gateway -->
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);width:90px;text-align:right;">API LAYER</div>
+      <div style="display:flex;gap:10px;flex:1;flex-wrap:wrap;">
+        <div class="arch-box" style="background:rgba(0,200,80,0.08);border-color:rgba(0,200,80,0.3);color:var(--green);flex:2;min-width:200px;">⚡ Supabase API<br><span style="font-size:10px;opacity:0.7;">REST Auto-generado + Row Level Security</span></div>
+        <div class="arch-box" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.3);color:var(--gold);">🔐 Supabase Auth<br><span style="font-size:10px;opacity:0.7;">JWT + OAuth</span></div>
+      </div>
+    </div>
+
+    <div class="arch-arrow">↕</div>
+
+    <!-- Capa: Servicios -->
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);width:90px;text-align:right;">SERVICIOS</div>
+      <div style="display:flex;gap:10px;flex:1;flex-wrap:wrap;">
+        <div class="arch-box" style="background:rgba(0,200,80,0.08);border-color:rgba(0,200,80,0.3);color:var(--green);">🗄️ PostgreSQL<br><span style="font-size:10px;opacity:0.7;">Supabase Cloud</span></div>
+        <div class="arch-box" style="background:var(--blue-s);border-color:rgba(59,130,246,0.3);color:var(--blue);">📁 Storage<br><span style="font-size:10px;opacity:0.7;">Fotos de canchas</span></div>
+        <div class="arch-box" style="background:var(--orange-s);border-color:rgba(249,115,22,0.3);color:var(--orange);">🔔 Realtime<br><span style="font-size:10px;opacity:0.7;">WebSockets</span></div>
+        <div class="arch-box" style="background:var(--purple-s);border-color:rgba(139,92,246,0.3);color:var(--purple);">⚙️ Edge Functions<br><span style="font-size:10px;opacity:0.7;">Lógica de negocio</span></div>
+      </div>
+    </div>
+
+    <div class="arch-arrow">↕</div>
+
+    <!-- Capa: Externos -->
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);width:90px;text-align:right;">EXTERNOS</div>
+      <div style="display:flex;gap:10px;flex:1;flex-wrap:wrap;">
+        <div class="arch-box" style="background:rgba(0,158,227,0.08);border-color:rgba(0,158,227,0.3);color:#009ee3;">💙 MercadoPago<br><span style="font-size:10px;opacity:0.7;">Procesamiento de pagos</span></div>
+        <div class="arch-box" style="background:rgba(66,133,244,0.08);border-color:rgba(66,133,244,0.3);color:#4285f4;">🗺️ Google Maps<br><span style="font-size:10px;opacity:0.7;">Geolocalización</span></div>
+        <div class="arch-box" style="background:rgba(249,115,22,0.08);border-color:rgba(249,115,22,0.3);color:var(--orange);">📲 Expo Push<br><span style="font-size:10px;opacity:0.7;">Notificaciones</span></div>
+        <div class="arch-box" style="background:rgba(255,255,255,0.04);border-color:#1e1e2e;color:#888;">📧 SendGrid<br><span style="font-size:10px;opacity:0.7;">Emails transacc.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flujo de reserva -->
+  <div class="section-title" style="color:var(--blue);font-size:16px;margin-bottom:6px;">🔄 Flujo de datos — Reserva exitosa</div>
+  <div class="section-sub">El camino completo de una reserva, de usuario a cancha</div>
+
+  <div class="card" style="margin-bottom:24px;">
+    <div style="display:grid;gap:0;">
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #12121c;">
+        <div style="background:var(--blue-s);color:var(--blue);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">1</div>
+        <div><div style="font-size:13px;font-weight:700;margin-bottom:2px;">Usuario busca cancha</div><div style="font-size:12px;color:var(--text2);">App envía lat/lng + radio + filtros → Supabase query con PostGIS (búsqueda geoespacial) → retorna canchas ordenadas por distancia</div></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #12121c;">
+        <div style="background:var(--green-s);color:var(--green);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">2</div>
+        <div><div style="font-size:13px;font-weight:700;margin-bottom:2px;">Selecciona horario</div><div style="font-size:12px;color:var(--text2);">Query a <code style="background:#1a1a28;padding:1px 6px;border-radius:4px;color:#a0a0c0;">reservas</code> table filtrando por cancha + fecha para mostrar slots disponibles. Lock optimista para evitar doble reserva.</div></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #12121c;">
+        <div style="background:var(--orange-s);color:var(--orange);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">3</div>
+        <div><div style="font-size:13px;font-weight:700;margin-bottom:2px;">Pago con MercadoPago</div><div style="font-size:12px;color:var(--text2);">App llama a Supabase Edge Function → función crea preferencia en MP → retorna init_point → app abre checkout de MP → usuario paga</div></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #12121c;">
+        <div style="background:var(--purple-s);color:var(--purple);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">4</div>
+        <div><div style="font-size:13px;font-weight:700;margin-bottom:2px;">Webhook de confirmación</div><div style="font-size:12px;color:var(--text2);">MercadoPago envía webhook a Supabase Edge Function → se actualiza <code style="background:#1a1a28;padding:1px 6px;border-radius:4px;color:#a0a0c0;">reservas.estado = 'confirmada'</code> → Realtime notifica a la app en tiempo real</div></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;">
+        <div style="background:var(--gold-s);color:var(--gold);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">5</div>
+        <div><div style="font-size:13px;font-weight:700;margin-bottom:2px;">Notificaciones</div><div style="font-size:12px;color:var(--text2);">Push notification al jugador (confirmación) + al dueño de cancha (nueva reserva) + email transaccional vía SendGrid con los detalles</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Entornos -->
+  <div class="section-title" style="color:var(--orange);font-size:16px;margin-bottom:6px;">🌍 Entornos de despliegue</div>
+  <div class="card-grid card-grid-3" style="margin-top:8px;">
+    <div class="card">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;margin-bottom:8px;">DEV</div>
+      <div style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:8px;">🔧 Local</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.7;">• Expo Dev Client<br>• Supabase local (Docker)<br>• MP en modo sandbox<br>• Hot reload activado</div>
+    </div>
+    <div class="card">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;margin-bottom:8px;">STAGING</div>
+      <div style="font-size:14px;font-weight:700;color:var(--blue);margin-bottom:8px;">🧪 Testing</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.7;">• Expo Preview build<br>• Supabase proyecto staging<br>• MP sandbox con datos reales<br>• TestFlight / Play Internal</div>
+    </div>
+    <div class="card">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;margin-bottom:8px;">PRODUCCIÓN</div>
+      <div style="font-size:14px;font-weight:700;color:#f87171;margin-bottom:8px;">🚀 Live · 11 Jun</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.7;">• Expo EAS Build (prod)<br>• Supabase Pro plan<br>• MP producción<br>• App Store + Play Store</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════ TAB: DB ═══════════════════════════ -->
+<div class="content" id="tab-db" style="display:none;">
+
+  <div class="section-title" style="color:var(--gold);">🗄️ Esquema de Base de Datos</div>
+  <div class="section-sub">PostgreSQL (Supabase) · 7 tablas principales para el MVP</div>
+
+  <div class="card-grid card-grid-2" style="gap:16px;">
+
+    <!-- users -->
+    <div class="db-table">
+      <div class="db-table-header" style="background:rgba(59,130,246,0.1);">
+        <span style="font-size:16px;">👤</span>
+        <div class="db-table-name" style="color:var(--blue);">users</div>
+        <span style="font-size:11px;color:var(--text2);margin-left:auto;">Supabase Auth extendida</span>
+      </div>
+      <div class="db-field"><span class="db-pk">PK</span><span class="db-field-name">id</span><span class="db-field-type">uuid</span><span class="db-field-note">from auth.users</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">nombre</span><span class="db-field-type">text</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">telefono</span><span class="db-field-type">text</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">tipo</span><span class="db-field-type">enum</span><span class="db-field-note">'jugador' | 'admin' | 'dueño'</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">avatar_url</span><span class="db-field-type">text</span><span class="db-field-note">Supabase Storage</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">push_token</span><span class="db-field-type">text</span><span class="db-field-note">Expo push token</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">created_at</span><span class="db-field-type">timestamptz</span><span class="db-field-note">default now()</span></div>
+    </div>
+
+    <!-- canchas -->
+    <div class="db-table">
+      <div class="db-table-header" style="background:rgba(0,200,80,0.1);">
+        <span style="font-size:16px;">🏟️</span>
+        <div class="db-table-name" style="color:var(--green);">canchas</div>
+        <span style="font-size:11px;color:var(--text2);margin-left:auto;">Perfil de la cancha</span>
+      </div>
+      <div class="db-field"><span class="db-pk">PK</span><span class="db-field-name">id</span><span class="db-field-type">uuid</span></div>
+      <div class="db-field"><span class="db-fk">FK</span><span class="db-field-name">dueño_id</span><span class="db-field-type">uuid</span><span class="db-field-note">→ users.id</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">nombre</span><span class="db-field-type">text</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">direccion</span><span class="db-field-type">text</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">ubicacion</span><span class="db-field-type">geometry</span><span class="db-field-note">PostGIS Point(lng,lat)</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">tipo_superficie</span><span class="db-field-type">enum</span><span class="db-field-note">'cesped' | 'sintetico' | 'cemento'</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">precio_hora</span><span class="db-field-type">numeric</span><span class="db-field-note">en ARS</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">capacidad</span><span class="db-field-type">int</span><span class="db-field-note">jugadores (5,7,11)</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">fotos</span><span class="db-field-type">text[]</span><span class="db-field-note">URLs de Storage</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">amenities</span><span class="db-field-type">text[]</span><span class="db-field-note">['vestuario','estacionamiento',...]</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">activa</span><span class="db-field-type">boolean</span><span class="db-field-note">default true</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">created_at</span><span class="db-field-type">timestamptz</span></div>
+    </div>
+
+    <!-- canchas_disponibilidad -->
+    <div class="db-table">
+      <div class="db-table-header" style="background:rgba(139,92,246,0.1);">
+        <span style="font-size:16px;">📅</span>
+        <div class="db-table-name" style="color:var(--purple);">canchas_disponibilidad</div>
+        <span style="font-size:11px;color:var(--text2);margin-left:auto;">Horarios recurrentes</span>
+      </div>
+      <div class="db-field"><span class="db-pk">PK</span><span class="db-field-name">id</span><span class="db-field-type">uuid</span></div>
+      <div class="db-field"><span class="db-fk">FK</span><span class="db-field-name">cancha_id</span><span class="db-field-type">uuid</span><span class="db-field-note">→ canchas.id</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">dia_semana</span><span class="db-field-type">int</span><span class="db-field-note">0=Dom, 1=Lun, ... 6=Sáb</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">hora_inicio</span><span class="db-field-type">time</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">hora_fin</span><span class="db-field-type">time</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">precio_override</span><span class="db-field-type">numeric</span><span class="db-field-note">null = usa precio base</span></div>
+    </div>
+
+    <!-- reservas -->
+    <div class="db-table">
+      <div class="db-table-header" style="background:rgba(249,115,22,0.1);">
+        <span style="font-size:16px;">📋</span>
+        <div class="db-table-name" style="color:var(--orange);">reservas</div>
+        <span style="font-size:11px;color:var(--text2);margin-left:auto;">Core del negocio</span>
+      </div>
+      <div class="db-field"><span class="db-pk">PK</span><span class="db-field-name">id</span><span class="db-field-type">uuid</span></div>
+      <div class="db-field"><span class="db-fk">FK</span><span class="db-field-name">cancha_id</span><span class="db-field-type">uuid</span><span class="db-field-note">→ canchas.id</span></div>
+      <div class="db-field"><span class="db-fk">FK</span><span class="db-field-name">jugador_id</span><span class="db-field-type">uuid</span><span class="db-field-note">→ users.id</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">fecha</span><span class="db-field-type">date</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">hora_inicio</span><span class="db-field-type">time</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">hora_fin</span><span class="db-field-type">time</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">estado</span><span class="db-field-type">enum</span><span class="db-field-note">'pendiente'|'confirmada'|'cancelada'|'completada'</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">monto_total</span><span class="db-field-type">numeric</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">metodo_pago</span><span class="db-field-type">enum</span><span class="db-field-note">'mercadopago'|'efectivo'|'transferencia'</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">notas</span><span class="db-field-type">text</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">created_at</span><span class="db-field-type">timestamptz</span></div>
+    </div>
+
+    <!-- pagos -->
+    <div class="db-table">
+      <div class="db-table-header" style="background:rgba(0,158,227,0.1);">
+        <span style="font-size:16px;">💳</span>
+        <div class="db-table-name" style="color:#009ee3;">pagos</div>
+        <span style="font-size:11px;color:var(--text2);margin-left:auto;">Registro de transacciones</span>
+      </div>
+      <div class="db-field"><span class="db-pk">PK</span><span class="db-field-name">id</span><span class="db-field-type">uuid</span></div>
+      <div class="db-field"><span class="db-fk">FK</span><span class="db-field-name">reserva_id</span><span class="db-field-type">uuid</span><span class="db-field-note">→ reservas.id</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">mp_payment_id</span><span class="db-field-type">text</span><span class="db-field-note">ID de MercadoPago</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">mp_status</span><span class="db-field-type">text</span><span class="db-field-note">'approved'|'pending'|'rejected'</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">monto</span><span class="db-field-type">numeric</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">comision_app</span><span class="db-field-type">numeric</span><span class="db-field-note">8–10% del monto</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">created_at</span><span class="db-field-type">timestamptz</span></div>
+    </div>
+
+    <!-- reviews -->
+    <div class="db-table">
+      <div class="db-table-header" style="background:rgba(245,158,11,0.1);">
+        <span style="font-size:16px;">⭐</span>
+        <div class="db-table-name" style="color:var(--gold);">reviews</div>
+        <span style="font-size:11px;color:var(--text2);margin-left:auto;">Calificaciones post-partido</span>
+      </div>
+      <div class="db-field"><span class="db-pk">PK</span><span class="db-field-name">id</span><span class="db-field-type">uuid</span></div>
+      <div class="db-field"><span class="db-fk">FK</span><span class="db-field-name">cancha_id</span><span class="db-field-type">uuid</span><span class="db-field-note">→ canchas.id</span></div>
+      <div class="db-field"><span class="db-fk">FK</span><span class="db-field-name">usuario_id</span><span class="db-field-type">uuid</span><span class="db-field-note">→ users.id</span></div>
+      <div class="db-field"><span class="db-fk">FK</span><span class="db-field-name">reserva_id</span><span class="db-field-type">uuid</span><span class="db-field-note">→ reservas.id (solo 1 review/reserva)</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">calificacion</span><span class="db-field-type">int</span><span class="db-field-note">1–5</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">comentario</span><span class="db-field-type">text</span></div>
+      <div class="db-field"><span class="db-plain"></span><span class="db-field-name">created_at</span><span class="db-field-type">timestamptz</span></div>
+    </div>
+
+    <!-- notificaciones -->
+    <div class="db-table" style="grid-column: 1 / -1;">
+      <div class="db-table-header" style="background:rgba(239,68,68,0.08);">
+        <span style="font-size:16px;">🔔</span>
+        <div class="db-table-name" style="color:#f87171;">notificaciones</div>
+        <span style="font-size:11px;color:var(--text2);margin-left:auto;">Historial de notificaciones push</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+        <div>
+          <div class="db-field"><span class="db-pk">PK</span><span class="db-field-name">id</span><span class="db-field-type">uuid</span></div>
+          <div class="db-field"><span class="db-fk">FK</span><span class="db-field-name">usuario_id</span><span class="db-field-type">uuid</span><span class="db-field-note">→ users.id</span></div>
+          <div class="db-field"><span class="db-plain"></span><span class="db-field-name">tipo</span><span class="db-field-type">enum</span><span class="db-field-note">'confirmacion'|'recordatorio'|'cancelacion'</span></div>
+        </div>
+        <div>
+          <div class="db-field"><span class="db-plain"></span><span class="db-field-name">titulo</span><span class="db-field-type">text</span></div>
+          <div class="db-field"><span class="db-plain"></span><span class="db-field-name">cuerpo</span><span class="db-field-type">text</span></div>
+          <div class="db-field"><span class="db-plain"></span><span class="db-field-name">leida</span><span class="db-field-type">boolean</span><span class="db-field-note">default false</span></div>
+          <div class="db-field"><span class="db-plain"></span><span class="db-field-name">created_at</span><span class="db-field-type">timestamptz</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Índices clave -->
+  <div class="section-divider"></div>
+  <div class="section-title" style="color:var(--purple);font-size:16px;">⚡ Índices y optimizaciones clave</div>
+  <div class="card" style="margin-top:12px;">
+    <div style="display:flex;flex-direction:column;gap:8px;font-family:monospace;font-size:12px;">
+      <div style="background:#0e0e18;padding:10px 14px;border-radius:10px;border:1px solid #1a1a28;color:#9090c0;">
+        <span style="color:#569cd6;">CREATE INDEX</span> canchas_ubicacion_gix <span style="color:#569cd6;">ON</span> canchas <span style="color:#569cd6;">USING</span> GIST(ubicacion); <span style="color:#5a5a7a;">-- búsqueda por radio</span>
+      </div>
+      <div style="background:#0e0e18;padding:10px 14px;border-radius:10px;border:1px solid #1a1a28;color:#9090c0;">
+        <span style="color:#569cd6;">CREATE INDEX</span> reservas_cancha_fecha_idx <span style="color:#569cd6;">ON</span> reservas(cancha_id, fecha); <span style="color:#5a5a7a;">-- consulta de disponibilidad</span>
+      </div>
+      <div style="background:#0e0e18;padding:10px 14px;border-radius:10px;border:1px solid #1a1a28;color:#9090c0;">
+        <span style="color:#569cd6;">CREATE UNIQUE INDEX</span> una_review_por_reserva <span style="color:#569cd6;">ON</span> reviews(reserva_id); <span style="color:#5a5a7a;">-- 1 sola reseña</span>
+      </div>
+      <div style="background:#0e0e18;padding:10px 14px;border-radius:10px;border:1px solid #1a1a28;color:#9090c0;">
+        <span style="color:#569cd6;">ALTER TABLE</span> reservas <span style="color:#569cd6;">ADD CONSTRAINT</span> no_double_booking <span style="color:#569cd6;">EXCLUDE USING</span> gist(cancha_id <span style="color:#569cd6;">WITH</span> =, tsrange(fecha+hora_inicio, fecha+hora_fin) <span style="color:#569cd6;">WITH</span> &&); <span style="color:#5a5a7a;">-- doble reserva</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════ TAB: UX ═══════════════════════════ -->
+<div class="content" id="tab-ux" style="display:none;">
+
+  <div class="section-title" style="color:var(--orange);">📱 Flujos UX/UI Principales</div>
+  <div class="section-sub">Los 4 flujos críticos del MVP — cada uno es un camino de usuario de punta a punta</div>
+
+  <div class="card-grid card-grid-2" style="gap:24px;">
+
+    <!-- FLUJO 1: Registro y Onboarding -->
+    <div>
+      <div style="font-size:15px;font-weight:800;color:var(--blue);margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+        <span style="background:var(--blue-s);border:1px solid rgba(59,130,246,0.3);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;">A</span>
+        Registro & Onboarding
+      </div>
+      <div class="flow-container">
+        <div class="flow-step">
+          <div class="flow-step-left">
+            <div class="flow-step-num" style="background:var(--blue-s);border-color:var(--blue);color:var(--blue);">1</div>
+            <div class="flow-step-line" style="background:var(--border);"></div>
+          </div>
+          <div class="flow-step-body">
+            <div class="flow-step-title">Splash + elección de rol</div>
+            <div class="flow-step-desc">El usuario elige: "Soy jugador" o "Tengo una cancha". Define el flujo completo.</div>
+            <span class="flow-screen">SplashScreen</span><span class="flow-screen">RolSelectionScreen</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-left">
+            <div class="flow-step-num" style="background:var(--blue-s);border-color:var(--blue);color:var(--blue);">2</div>
+            <div class="flow-step-line" style="background:var(--border);"></div>
+          </div>
+          <div class="flow-step-body">
+            <div class="flow-step-title">Autenticación</div>
+            <div class="flow-step-desc">Registro con email+contraseña o Google OAuth. Verificación de email automática vía Supabase Auth.</div>
+            <span class="flow-screen">AuthScreen</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-left">
+            <div class="flow-step-num" style="background:var(--blue-s);border-color:var(--blue);color:var(--blue);">3</div>
+            <div class="flow-step-line" style="background:var(--border);"></div>
+          </div>
+          <div class="flow-step-body">
+            <div class="flow-step-title">Completar perfil</div>
+            <div class="flow-step-desc">Nombre, teléfono, foto opcional. Si es dueño: nombre de la cancha, dirección y fotos.</div>
+            <span class="flow-screen">ProfileSetupScreen</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-left">
+            <div class="flow-step-num" style="background:var(--blue-s);border-color:var(--blue);color:var(--blue);">4</div>
+          </div>
+          <div class="flow-step-body">
+            <div class="flow-step-title">Permisos y Home</div>
+            <div class="flow-step-desc">Solicitar permiso de localización + notificaciones. Redirige a HomeScreen (jugador) o DashboardScreen (dueño).</div>
+            <span class="flow-screen">PermissionsScreen</span><span class="flow-screen">HomeScreen</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLUJO 2: Búsqueda y Reserva -->
+    <div>
+      <div style="font-size:15px;font-weight:800;color:var(--green);margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+        <span style="background:var(--green-s);border:1px solid rgba(0,200,80,0.3);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;">B</span>
+        Búsqueda & Reserva
+      </div>
+      <div class="flow-container">
+        <div class="flow-step">
+          <div class="flow-step-left">
+            <div class="flow-step-num" style="background:var(--green-s);border-color:var(--green);color:var(--green);">1</div>
+            <div class="flow-step-line" style="background:var(--border);"></div>
+          </div>
+          <div class="flow-step-body">
+            <div class="flow-step-title">Búsqueda con mapa</div>
+            <div class="flow-step-desc">Mapa centrado en ubicación del usuario. Pines de canchas disponibles. Filtros: fecha, hora, tipo de cancha, precio.</div>
+            <span class="flow-screen">SearchScreen</span><span class="flow-screen">MapView</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-left">
+            <div class="flow-step-num" style="background:var(--green-s);border-color:var(--green);color:var(--green);">2</div>
+            <div class="flow-step-line" style="background:var(--border);"></div>
+          </div>
+          <div class="flow-step-body">
+            <div class="flow-step-title">Detalle de cancha</div>
+            <div class="flow-step-desc">Fotos en carrusel, precio, amenities, reseñas, calificación promedio, dirección con Google Maps.</div>
+            <span class="flow-screen">CanchaDetailScreen</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-left">
+            <div class="flow-step-num" style="background:var(--green-s);border-color:var(--green);color:var(--green);">3</div>
+            <div class="flow-step-line" style="background:var(--border);"></div>
+          </div>
+          <div class="flow-step-body">
+            <div class="flow-step-title">Selección de horario</div>
+            <div class="flow-step-desc">Calendario con slots disponibles en verde y ocupados en gris. El usuario elige fecha y hora.</div>
+            <span class="flow-screen">BookingScreen</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-left">
+            <div class="flow-step-num" style="background:var(--green-s);border-color:var(--green);color:var(--green);">4</div>
+          </div>
+          <div class="flow-step-body">
+            <div class="flow-step-title">Confirmación</div>
+            <div class="flow-step-desc">Resumen de la reserva: cancha, fecha, hora, precio. Botón "Confirmar y pagar".</div>
+            <span class="flow-screen">BookingConfirmScreen</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLUJO 3: Pago -->
+    <div>
+      <div style="font-size:15px;font-weight:800;color:var(--purple);margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+        <span style="background:var(--purple-s);border:1px solid rgba(139,92,246,0.3);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;">C</span>
+        Flujo de Pago
+      </div>
+      <div class="flow-container">
+        <div class="flow-step">
+          <div class="flow-step-left">
+            <div class="flow-step-num" style="background:var(--purple-s);border-color:var(--purple);color:var(--purple);">1</div>
+            <div class="flow-step-line" style="background:var(--border);"></div>
+          </div>
+          <div class="flow-step-body">
+            <div class="flow-step-title">Elección de método de pago</div>
+            <div class="flow-step-desc">3 opciones: MercadoPago (tarjeta/QR/cuotas), Transferencia bancaria, Efectivo en cancha.</div>
+            <span class="flow-screen">PaymentMethodScreen</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-left">
+            <div class="flow-step-num" style="background:var(--purple-s);border-color:var(--purple);color:var(--purple);">2</div>
+            <div class="flow-step-line" style="background:var(--border);"></div>
+          </div>
+          <div class="flow-step-body">
+            <div class="flow-step-title">Checkout de MercadoPago</div>
+            <div class="flow-step-desc">Se abre el SDK nativo de MP con el precio ya cargado. El usuario completa el pago en la interfaz de MP.</div>
+            <span class="flow-screen">MPCheckout (externo)</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-left">
+            <div class="flow-step-num" style="background:var(--purple-s);border-color:var(--purple);color:var(--purple);">3</div>
+            <div class="flow-step-line" style="background:var(--border);"></div>
+          </div>
+          <div class="flow-step-body">
+            <div class="flow-step-title">Retorno a la app</div>
+            <div class="flow-step-desc">Deep link regresa a FulboApp. Se muestra loading mientras el webhook de MP confirma el pago.</div>
+            <span class="flow-screen">PaymentLoadingScreen</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-left">
+            <div class="flow-step-num" style="background:var(--purple-s);border-color:var(--purple);color:var(--purple);">4</div>
+          </div>
+          <div class="flow-step-body">
+            <div class="flow-step-title">Reserva confirmada 🎉</div>
+            <div class="flow-step-desc">Pantalla de éxito con los detalles. Push notification al jugador y al dueño. Email automático.</div>
+            <span class="flow-screen">BookingSuccessScreen</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLUJO 4: Panel Admin Cancha -->
+    <div>
+      <div style="font-size:15px;font-weight:800;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+        <span style="background:var(--gold-s);border:1px solid rgba(245,158,11,0.3);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;">D</span>
+        Panel Admin — Dueño de Cancha
+      </div>
+      <div class="flow-container">
+        <div class="flow-step">
+          <div class="flow-step-left">
+            <div class="flow-step-num" style="background:var(--gold-s);border-color:var(--gold);color:var(--gold);">1</div>
+            <div class="flow-step-line" style="background:var(--border);"></div>
+          </div>
+          <div class="flow-step-body">
+            <div class="flow-step-title">Dashboard principal</div>
+            <div class="flow-step-desc">Resumen del día: reservas de hoy, ingresos del mes, calificación promedio, nuevas reseñas.</div>
+            <span class="flow-screen">AdminDashboardScreen</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-left">
+            <div class="flow-step-num" style="background:var(--gold-s);border-color:var(--gold);color:var(--gold);">2</div>
+            <div class="flow-step-line" style="background:var(--border);"></div>
+          </div>
+          <div class="flow-step-body">
+            <div class="flow-step-title">Gestión de agenda</div>
+            <div class="flow-step-desc">Vista semanal con reservas confirmadas, pendientes y slots libres. Puede bloquear horarios manualmente.</div>
+            <span class="flow-screen">AdminCalendarScreen</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-left">
+            <div class="flow-step-num" style="background:var(--gold-s);border-color:var(--gold);color:var(--gold);">3</div>
+            <div class="flow-step-line" style="background:var(--border);"></div>
+          </div>
+          <div class="flow-step-body">
+            <div class="flow-step-title">Gestión de la cancha</div>
+            <div class="flow-step-desc">Editar fotos, precios, horarios disponibles, amenities. Activar/desactivar la cancha.</div>
+            <span class="flow-screen">AdminCanchaEditScreen</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-left">
+            <div class="flow-step-num" style="background:var(--gold-s);border-color:var(--gold);color:var(--gold);">4</div>
+          </div>
+          <div class="flow-step-body">
+            <div class="flow-step-title">Ingresos y retiros</div>
+            <div class="flow-step-desc">Historial de pagos recibidos, retiros a CBU/CVU. Reporte mensual descargable.</div>
+            <span class="flow-screen">AdminIncomesScreen</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════ TAB: PANTALLAS ═══════════════════════════ -->
+<div class="content" id="tab-screens" style="display:none;">
+
+  <div class="section-title" style="color:var(--blue);">🖼️ Wireframes — Pantallas clave</div>
+  <div class="section-sub">Representación esquemática del look & feel del MVP</div>
+
+  <div class="mockup-grid">
+
+    <!-- HomeScreen -->
+    <div class="mockup">
+      <div class="mockup-statusbar"><span>9:41</span><span>📶</span><span>🔋</span></div>
+      <div class="mockup-content">
+        <div class="mockup-title">🏠 Home</div>
+        <div class="m-header">
+          <div class="m-header-title">⚽ Hola, Diego</div>
+          <div class="m-header-sub">¿Jugamos hoy?</div>
+        </div>
+        <div class="m-search"><span>🔍</span><span>Buscar canchas cerca...</span></div>
+        <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;">
+          <span class="m-tag" style="background:var(--green-s);color:var(--green);border:1px solid rgba(0,200,80,0.3);white-space:nowrap;">⚽ F5</span>
+          <span class="m-tag" style="white-space:nowrap;">F7</span>
+          <span class="m-tag" style="white-space:nowrap;">F11</span>
+          <span class="m-tag" style="white-space:nowrap;">🌿 Sintético</span>
+        </div>
+        <div style="font-size:10px;color:var(--text2);margin-bottom:6px;font-weight:700;">CERCA DE VOS</div>
+        <div class="m-card">
+          <div class="m-photo">🏟️</div>
+          <div class="m-card-row">
+            <span class="m-card-name">Canchas del Bajo</span>
+            <span class="m-card-price">$12.000/h</span>
+          </div>
+          <div class="m-card-row">
+            <span class="m-card-meta">📍 0.8 km · F5/F7</span>
+            <span class="m-card-stars">★★★★★ 4.9</span>
+          </div>
+        </div>
+        <div class="m-card">
+          <div class="m-card-row">
+            <span class="m-card-name">Palermo Soccer</span>
+            <span class="m-card-price">$9.500/h</span>
+          </div>
+          <div class="m-card-row">
+            <span class="m-card-meta">📍 1.2 km · F5</span>
+            <span class="m-card-stars">★★★★☆ 4.3</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SearchMap -->
+    <div class="mockup">
+      <div class="mockup-statusbar"><span>9:41</span><span>📶</span><span>🔋</span></div>
+      <div class="mockup-content">
+        <div class="mockup-title">🗺️ Mapa de búsqueda</div>
+        <div style="background:linear-gradient(135deg,#1a2a1a,#0a180a);border-radius:12px;height:130px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text2);border:1px solid #1e2e1e;margin-bottom:8px;position:relative;flex-direction:column;gap:8px;">
+          <div style="font-size:24px;">🗺️</div>
+          <span>Google Maps centrado en vos</span>
+          <div style="position:absolute;top:30px;left:40px;background:var(--green);color:#000;border-radius:8px;padding:2px 6px;font-size:9px;font-weight:700;">$12k</div>
+          <div style="position:absolute;top:50px;left:100px;background:var(--blue);color:#fff;border-radius:8px;padding:2px 6px;font-size:9px;font-weight:700;">$9.5k</div>
+          <div style="position:absolute;top:20px;right:30px;background:var(--orange);color:#fff;border-radius:8px;padding:2px 6px;font-size:9px;font-weight:700;">$15k</div>
+          <div style="position:absolute;bottom:12px;right:12px;background:#000;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;">📍</div>
+        </div>
+        <div style="font-size:10px;color:var(--text2);margin-bottom:6px;font-weight:700;">3 CANCHAS DISPONIBLES HOY</div>
+        <div class="m-card">
+          <div class="m-card-row">
+            <span class="m-card-name">Canchas del Bajo</span>
+            <span class="m-card-price">$12.000/h</span>
+          </div>
+          <div class="m-card-meta">📍 0.8 km · Turnos desde las 18hs</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CanchaDetail -->
+    <div class="mockup">
+      <div class="mockup-statusbar"><span>9:41</span><span>📶</span><span>🔋</span></div>
+      <div class="mockup-content">
+        <div class="mockup-title">🏟️ Detalle cancha</div>
+        <div class="m-photo" style="height:80px;">🏟️</div>
+        <div style="font-size:14px;font-weight:800;margin-bottom:4px;">Canchas del Bajo</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:11px;color:var(--text2);">📍 Av. Costanera 1234, CABA</span>
+          <span style="font-size:11px;color:var(--gold);">★ 4.9 (47)</span>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+          <span class="m-tag">🌿 Sintético</span><span class="m-tag">🚿 Vestuario</span><span class="m-tag">🅿️ Parking</span>
+        </div>
+        <div class="m-divider"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:13px;color:var(--text2);">Precio por hora</span>
+          <span style="font-size:16px;font-weight:800;color:var(--green);">$12.000</span>
+        </div>
+        <div class="m-btn m-btn-green">Reservar cancha →</div>
+      </div>
+    </div>
+
+    <!-- BookingScreen -->
+    <div class="mockup">
+      <div class="mockup-statusbar"><span>9:41</span><span>📶</span><span>🔋</span></div>
+      <div class="mockup-content">
+        <div class="mockup-title">📅 Seleccionar horario</div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:8px;">Sábado 30 de Mayo</div>
+        <div style="background:#0e0e18;border-radius:10px;padding:10px;margin-bottom:10px;">
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;margin-bottom:6px;">
+            <span style="font-size:9px;color:var(--text2);">L</span><span style="font-size:9px;color:var(--text2);">M</span><span style="font-size:9px;color:var(--text2);">M</span><span style="font-size:9px;color:var(--text2);">J</span><span style="font-size:9px;color:var(--text2);">V</span><span style="font-size:9px;color:var(--green);font-weight:700;">S</span><span style="font-size:9px;color:var(--text2);">D</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;">
+            <span style="font-size:10px;color:var(--text2);">27</span><span style="font-size:10px;color:var(--text2);">28</span><span style="font-size:10px;color:var(--text2);">29</span><span style="font-size:10px;color:var(--text2);">30</span><span style="font-size:10px;color:var(--text2);">31</span><span style="font-size:10px;background:var(--green);color:#000;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-weight:700;margin:auto;">1</span><span style="font-size:10px;color:var(--text2);">2</span>
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--text2);margin-bottom:6px;font-weight:700;">HORARIOS DISPONIBLES</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">
+          <span class="m-slot">08:00</span>
+          <span class="m-slot">09:00</span>
+          <span class="m-slot sel">10:00 ✓</span>
+          <span class="m-slot">11:00</span>
+          <span class="m-slot" style="opacity:0.4;text-decoration:line-through;">12:00</span>
+          <span class="m-slot">18:00</span>
+          <span class="m-slot">19:00</span>
+          <span class="m-slot" style="opacity:0.4;text-decoration:line-through;">20:00</span>
+        </div>
+        <div class="m-btn m-btn-green">Confirmar — $12.000</div>
+      </div>
+    </div>
+
+    <!-- PaymentScreen -->
+    <div class="mockup">
+      <div class="mockup-statusbar"><span>9:41</span><span>📶</span><span>🔋</span></div>
+      <div class="mockup-content">
+        <div class="mockup-title">💳 Pago</div>
+        <div class="m-card" style="margin-bottom:10px;background:#0a1a0a;border-color:rgba(0,200,80,0.2);">
+          <div style="font-size:10px;color:var(--text2);margin-bottom:4px;">Resumen de reserva</div>
+          <div class="m-row"><span style="font-size:11px;color:var(--text2);">🏟️ Canchas del Bajo</span></div>
+          <div class="m-row"><span style="font-size:11px;color:var(--text2);">📅 Sáb 30 May · 10:00–11:00</span></div>
+          <div class="m-row"><span style="font-size:12px;font-weight:700;">Total a pagar</span><span style="font-size:14px;font-weight:800;color:var(--green);">$12.000</span></div>
+        </div>
+        <div style="font-size:10px;color:var(--text2);margin-bottom:8px;font-weight:700;">MÉTODO DE PAGO</div>
+        <div class="m-card" style="margin-bottom:6px;border-color:rgba(0,158,227,0.4);background:rgba(0,158,227,0.06);">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:18px;">💙</span>
+            <div><div style="font-size:12px;font-weight:700;color:#009ee3;">MercadoPago</div><div style="font-size:10px;color:var(--text2);">Tarjeta, QR o cuotas</div></div>
+            <span style="margin-left:auto;color:var(--green);font-size:14px;">●</span>
+          </div>
+        </div>
+        <div class="m-card" style="margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:8px;opacity:0.6;">
+            <span style="font-size:18px;">💵</span>
+            <div><div style="font-size:12px;font-weight:700;">Efectivo en cancha</div></div>
+          </div>
+        </div>
+        <div class="m-btn m-btn-green">Pagar con MercadoPago →</div>
+      </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div class="mockup">
+      <div class="mockup-statusbar"><span>9:41</span><span>📶</span><span>🔋</span></div>
+      <div class="mockup-content">
+        <div class="mockup-title">⚙️ Panel dueño</div>
+        <div class="m-header">
+          <div class="m-header-title">🏟️ Canchas del Bajo</div>
+          <div class="m-header-sub">Hoy · 3 reservas confirmadas</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+          <div class="m-stat" style="background:#0e0e18;border-radius:10px;padding:10px;border:1px solid #1a1a28;">
+            <div class="m-stat-val" style="color:var(--green);">$36.000</div>
+            <div class="m-stat-lbl">Hoy</div>
+          </div>
+          <div class="m-stat" style="background:#0e0e18;border-radius:10px;padding:10px;border:1px solid #1a1a28;">
+            <div class="m-stat-val" style="color:var(--blue);">3</div>
+            <div class="m-stat-lbl">Reservas</div>
+          </div>
+          <div class="m-stat" style="background:#0e0e18;border-radius:10px;padding:10px;border:1px solid #1a1a28;">
+            <div class="m-stat-val" style="color:var(--gold);">★ 4.9</div>
+            <div class="m-stat-lbl">Rating</div>
+          </div>
+          <div class="m-stat" style="background:#0e0e18;border-radius:10px;padding:10px;border:1px solid #1a1a28;">
+            <div class="m-stat-val" style="color:var(--orange);">$410k</div>
+            <div class="m-stat-lbl">Este mes</div>
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--text2);margin-bottom:6px;font-weight:700;">PRÓXIMAS RESERVAS</div>
+        <div class="m-card">
+          <div class="m-card-row">
+            <span style="font-size:11px;font-weight:700;">10:00 – 11:00</span>
+            <span style="font-size:10px;background:var(--green-s);color:var(--green);padding:1px 8px;border-radius:20px;">Confirmada</span>
+          </div>
+          <div class="m-card-meta">👤 Diego Maradona Jr.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════ TAB: PLAN ═══════════════════════════ -->
+<div class="content" id="tab-plan" style="display:none;">
+
+  <div class="section-title" style="color:var(--green);">📅 Plan detallado — 10 días (25 Abr – 4 May)</div>
+  <div class="section-sub">Qué hay que entregar cada día para que la Fase 1 termine en tiempo</div>
+
+  <!-- Timeline visual -->
+  <div class="timeline" style="margin-bottom:32px;">
+    <div class="tl-item"><div class="tl-dot done"></div><div class="tl-label">Día 1</div><div class="tl-date">25 Abr</div></div>
+    <div class="tl-item"><div class="tl-dot done"></div><div class="tl-label">Día 2</div><div class="tl-date">26 Abr</div></div>
+    <div class="tl-item"><div class="tl-dot active"></div><div class="tl-label">Día 3</div><div class="tl-date">27 Abr</div></div>
+    <div class="tl-item"><div class="tl-dot pending"></div><div class="tl-label">Día 4</div><div class="tl-date">28 Abr</div></div>
+    <div class="tl-item"><div class="tl-dot pending"></div><div class="tl-label">Día 5</div><div class="tl-date">29 Abr</div></div>
+    <div class="tl-item"><div class="tl-dot pending"></div><div class="tl-label">Día 6</div><div class="tl-date">30 Abr</div></div>
+    <div class="tl-item"><div class="tl-dot pending"></div><div class="tl-label">Día 7</div><div class="tl-date">1 May</div></div>
+    <div class="tl-item"><div class="tl-dot pending"></div><div class="tl-label">Día 8</div><div class="tl-date">2 May</div></div>
+    <div class="tl-item"><div class="tl-dot pending"></div><div class="tl-label">Día 9</div><div class="tl-date">3 May</div></div>
+    <div class="tl-item"><div class="tl-dot pending"></div><div class="tl-label">Día 10 🏁</div><div class="tl-date">4 May</div></div>
+  </div>
+
+  <!-- Días detallados -->
+  <div style="display:flex;flex-direction:column;gap:10px;">
+
+    <div class="card" style="border-color:rgba(0,200,80,0.3);background:rgba(0,200,80,0.04);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:var(--green);color:#000;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">1</span>
+        <div><span style="font-size:13px;font-weight:800;color:var(--green);">25 Abr — Kick-off y definiciones</span><span style="font-size:11px;color:var(--text2);margin-left:10px;">Completado ✓</span></div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.7;padding-left:38px;">✅ Roadmap y documentación inicial · ✅ Stack definido: React Native + Expo + Supabase + MercadoPago · ✅ Arquitectura definida · ✅ Flujos UX mapeados</div>
+    </div>
+
+    <div class="card" style="border-color:rgba(59,130,246,0.3);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:var(--blue-s);color:var(--blue);border:1px solid rgba(59,130,246,0.4);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">2-3</span>
+        <div><span style="font-size:13px;font-weight:800;color:var(--blue);">26-27 Abr — Diseño UI (Figma)</span></div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.7;padding-left:38px;">⬜ Crear Design System en Figma (colores, tipografías, componentes) · ⬜ Wireframes de alta fidelidad: HomeScreen, SearchScreen, CanchaDetail, BookingScreen · ⬜ Flujo completo jugador (15 pantallas) · ⬜ Flujo admin/dueño (8 pantallas)</div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#14141e;color:var(--text2);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">4</span>
+        <div><span style="font-size:13px;font-weight:800;">28 Abr — Setup técnico</span></div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.7;padding-left:38px;">⬜ Crear proyecto Expo + repositorio en GitHub · ⬜ Configurar proyecto Supabase (dev + staging) · ⬜ Crear tablas en PostgreSQL según el schema · ⬜ Activar extensión PostGIS · ⬜ Configurar Row Level Security (RLS) básico · ⬜ Setup de GitHub Actions para CI</div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#14141e;color:var(--text2);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">5</span>
+        <div><span style="font-size:13px;font-weight:800;">29 Abr — Cuenta de desarrollador</span></div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.7;padding-left:38px;">⬜ Abrir cuenta de desarrollador en Apple App Store ($99 USD/año) · ⬜ Abrir cuenta en Google Play Console ($25 USD único) · ⬜ Crear cuenta de MercadoPago para desarrolladores · ⬜ Configurar webhook endpoint en Supabase Edge Functions</div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:#14141e;color:var(--text2);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">6-7</span>
+        <div><span style="font-size:13px;font-weight:800;">30 Abr – 1 May — Equipo de desarrollo</span></div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.7;padding-left:38px;">⬜ Contratar/confirmar equipo: 2 devs mobile (React Native), 1 dev backend/Supabase, 1 diseñador UI · ⬜ Onboarding del equipo al repo, accesos, convenciones de código · ⬜ Sprint planning de Fase 2 (primera reunión técnica)</div>
+    </div>
+
+    <div class="card" style="border-color:rgba(245,158,11,0.3);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:var(--gold-s);color:var(--gold);border:1px solid rgba(245,158,11,0.4);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">8-9</span>
+        <div><span style="font-size:13px;font-weight:800;color:var(--gold);">2-3 May — Onboarding de canchas piloto 🏟️</span></div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.7;padding-left:38px;">⬜ Visitar y cerrar acuerdo con 5 canchas en CABA (propuesta: primeros 3 meses sin comisión) · ⬜ Fotografiar las canchas para el lanzamiento · ⬜ Registrar datos: dirección, precio, horarios, amenities · ⬜ Zonas objetivo: Palermo, Villa Crespo, Caballito, Almagro, San Telmo</div>
+    </div>
+
+    <div class="card" style="border-color:rgba(0,200,80,0.4);background:rgba(0,200,80,0.05);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="background:var(--green);color:#000;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;">🏁</span>
+        <div><span style="font-size:13px;font-weight:800;color:var(--green);">4 May — Cierre de Fase 1 · Checklist final</span></div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.7;padding-left:38px;">
+        ⬜ Figma con todos los flujos revisados y aprobados<br>
+        ⬜ Repositorio creado con estructura base del proyecto<br>
+        ⬜ Schema de DB creado en Supabase staging<br>
+        ⬜ Equipo de 4 personas confirmado y con accesos<br>
+        ⬜ 5 canchas piloto con datos cargados y fotos<br>
+        ⬜ Cuentas de App Store y Play Store activas<br>
+        ⬜ <strong style="color:var(--green);">GO · Inicio de Fase 2</strong>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Riesgos de esta fase -->
+  <div class="section-divider"></div>
+  <div class="section-title" style="color:#f87171;font-size:16px;margin-bottom:12px;">⚠️ Riesgos específicos de Fase 1</div>
+
+  <div class="risk-row">
+    <div class="risk-icon">🍎</div>
+    <div class="risk-text"><strong>Apple Developer Account:</strong> El proceso de verificación puede tardar 24–72 hs. Abrirla el día 5 como tarea crítica.</div>
+    <span class="risk-badge" style="background:var(--red-s);color:#f87171;">ALTO</span>
+  </div>
+  <div class="risk-row">
+    <div class="risk-icon">👨‍💻</div>
+    <div class="risk-text"><strong>Disponibilidad del equipo de dev:</strong> Con 47 días al deadline, los buenos devs en React Native pueden estar ocupados. Contactar referencias YA.</div>
+    <span class="risk-badge" style="background:var(--orange-s);color:var(--orange);">MEDIO</span>
+  </div>
+  <div class="risk-row">
+    <div class="risk-icon">🏟️</div>
+    <div class="risk-text"><strong>Reticencia de dueños de canchas:</strong> Muchos ya usan WhatsApp. Hay que ir con una propuesta clara: sin comisión los primeros 3 meses + más visibilidad.</div>
+    <span class="risk-badge" style="background:var(--orange-s);color:var(--orange);">MEDIO</span>
+  </div>
+  <div class="risk-row">
+    <div class="risk-icon">🎨</div>
+    <div class="risk-text"><strong>Scope del diseño UI:</strong> El riesgo es querer perfeccionar los wireframes. Regla: diseño bueno > diseño perfecto. Máximo 2 días en Figma.</div>
+    <span class="risk-badge" style="background:var(--green-s);color:var(--green);">BAJO</span>
+  </div>
+
+</div>
+
+<script>
+function showTab(id, el) {
+  ['stack','arch','db','ux','screens','plan'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===id ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>
+
+</body>
+</html>

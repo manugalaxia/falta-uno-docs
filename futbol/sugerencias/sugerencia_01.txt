@@ -1,0 +1,8 @@
+Primer turno gratis al registrarte.
+Desarrollar la opción modo torneo.
+En propuesta de valor para el dueño agregar:
+- Posibilidad de financiarse.
+- Seguro ante días de poca concurrencia.
+- Capacidad de alquilar turnos de última hora.
+- Beneficios extras: al usar la app mejora su índice de turnos cancelados.
+- Modificar el algoritmo de búsqueda interno para que le dé más peso a la antigüedad.

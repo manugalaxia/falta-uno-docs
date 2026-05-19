@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FulboApp – Roadmap de Lanzamiento 2026</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#08080f; font-family:'Segoe UI',system-ui,sans-serif; color:#f0f0f5; min-height:100vh; }
+
+  :root {
+    --green:#00c850; --green-s:rgba(0,200,80,0.15);
+    --blue:#3b82f6;  --blue-s:rgba(59,130,246,0.15);
+    --orange:#f97316; --orange-s:rgba(249,115,22,0.15);
+    --purple:#8b5cf6; --purple-s:rgba(139,92,246,0.15);
+    --gold:#f59e0b;  --gold-s:rgba(245,158,11,0.15);
+    --red:#ef4444;
+    --card:#14141e; --border:#1e1e2e; --text2:#8080a0;
+  }
+
+  /* ── Header ── */
+  .header { background:linear-gradient(135deg,#0d1a0d 0%,#08080f 40%,#0d0d1a 100%); padding:48px 32px 36px; border-bottom:1px solid var(--border); }
+  .header-top { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; }
+  .logo { display:flex; align-items:center; gap:12px; }
+  .logo-ball { font-size:36px; }
+  .logo-text { font-size:28px; font-weight:900; letter-spacing:-1px; }
+  .logo-text span { color:var(--green); }
+  .logo-sub { font-size:13px; color:var(--text2); margin-top:2px; }
+  .header-badge { background:linear-gradient(135deg,#7c1010,#c41e1e); color:#fff; border-radius:14px; padding:10px 18px; text-align:center; border:1px solid rgba(255,80,80,0.4); }
+  .badge-days { font-size:36px; font-weight:900; line-height:1; }
+  .badge-label { font-size:11px; opacity:0.85; margin-top:2px; }
+  .header-meta { display:flex; gap:24px; margin-top:24px; flex-wrap:wrap; }
+  .meta-item { }
+  .meta-val { font-size:20px; font-weight:800; }
+  .meta-lbl { font-size:11px; color:var(--text2); margin-top:2px; }
+
+  /* ── Progress bar global ── */
+  .global-progress { padding:24px 32px 0; }
+  .gp-label { display:flex; justify-content:space-between; font-size:13px; color:var(--text2); margin-bottom:8px; }
+  .gp-label span:last-child { color:var(--green); font-weight:700; }
+  .gp-bar { height:8px; background:#1e1e2e; border-radius:4px; overflow:hidden; position:relative; }
+  .gp-fill { height:100%; background:linear-gradient(90deg,var(--green),#00a040); border-radius:4px; width:4%; transition:width 1s ease; }
+  .gp-marker { position:absolute; top:-6px; width:20px; height:20px; background:var(--gold); border-radius:50%; border:3px solid #08080f; transform:translateX(-50%); display:flex; align-items:center; justify-content:center; font-size:9px; }
+
+  /* ── Tabs ── */
+  .tabs { display:flex; gap:0; padding:24px 32px 0; border-bottom:1px solid var(--border); }
+  .tab { padding:10px 20px; font-size:13px; font-weight:600; color:var(--text2); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; }
+  .tab:hover { color:#fff; }
+  .tab.active { color:var(--green); border-bottom-color:var(--green); }
+
+  /* ── Main content ── */
+  .content { padding:28px 32px; }
+
+  /* ── Phase cards ── */
+  .phases { display:flex; flex-direction:column; gap:0; position:relative; }
+  .phases::before { content:''; position:absolute; left:28px; top:0; bottom:0; width:2px; background:linear-gradient(180deg,var(--green),var(--blue),var(--orange),var(--purple),var(--gold)); opacity:0.3; }
+
+  .phase { display:flex; gap:20px; margin-bottom:8px; }
+  .phase-dot { width:58px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding-top:4px; }
+  .dot-circle { width:18px; height:18px; border-radius:50%; border:3px solid; position:relative; z-index:1; flex-shrink:0; }
+  .dot-circle.done { background:var(--green); border-color:var(--green); }
+  .dot-circle.active { background:var(--blue); border-color:var(--blue); box-shadow:0 0 10px rgba(59,130,246,0.6); }
+  .dot-circle.pending { background:#14141e; border-color:#2a2a3e; }
+  .dot-line { width:2px; flex:1; min-height:20px; background:#1e1e2e; margin-top:4px; }
+
+  .phase-card { flex:1; background:var(--card); border-radius:20px; border:1px solid var(--border); margin-bottom:16px; overflow:hidden; cursor:pointer; transition:all 0.25s; }
+  .phase-card:hover { transform:translateX(4px); }
+  .phase-card.expanded { border-color:rgba(255,255,255,0.12); }
+  .phase-header { display:flex; align-items:center; gap:14px; padding:18px 20px; }
+  .phase-emoji { font-size:26px; }
+  .phase-info { flex:1; }
+  .phase-name { font-size:16px; font-weight:700; }
+  .phase-dates { font-size:12px; color:var(--text2); margin-top:3px; }
+  .phase-right { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  .phase-status { font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; }
+  .phase-toggle { font-size:16px; color:var(--text2); transition:transform 0.2s; }
+  .phase-card.expanded .phase-toggle { transform:rotate(180deg); }
+  .phase-stripe { height:3px; }
+
+  .phase-body { padding:0 20px 18px; display:none; }
+  .phase-card.expanded .phase-body { display:block; }
+
+  .task-list { display:flex; flex-direction:column; gap:6px; margin-top:4px; }
+  .task-item { display:flex; align-items:flex-start; gap:10px; padding:10px 12px; background:#0e0e18; border-radius:12px; border:1px solid #1a1a28; }
+  .task-check { width:18px; height:18px; border-radius:6px; flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; font-size:11px; }
+  .task-check.done { background:rgba(0,200,80,0.2); color:var(--green); border:1px solid rgba(0,200,80,0.4); }
+  .task-check.wip  { background:rgba(59,130,246,0.2); color:var(--blue); border:1px solid rgba(59,130,246,0.4); }
+  .task-check.todo { background:#14141e; border:1px solid #1e1e2e; color:transparent; }
+  .task-text { font-size:13px; color:#d0d0e0; flex:1; }
+  .task-tag { font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; white-space:nowrap; margin-top:1px; }
+
+  .phase-kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:14px; }
+  .kpi { background:#0e0e18; border-radius:12px; padding:10px 12px; border:1px solid #1a1a28; text-align:center; }
+  .kpi-val { font-size:18px; font-weight:800; }
+  .kpi-lbl { font-size:10px; color:var(--text2); margin-top:2px; }
+
+  /* Colors per phase */
+  .p1 .phase-stripe { background:linear-gradient(90deg,var(--green),#00a040); }
+  .p1 .phase-name { color:var(--green); }
+  .p1 .phase-status { background:var(--green-s); color:var(--green); }
+  .p1 .dot-circle { border-color:var(--green); background:var(--green); }
+  .p1 .task-check.wip { background:rgba(0,200,80,0.2); color:var(--green); border-color:rgba(0,200,80,0.4); }
+
+  .p2 .phase-stripe { background:linear-gradient(90deg,var(--blue),#1d4ed8); }
+  .p2 .phase-name { color:var(--blue); }
+  .p2 .phase-status { background:var(--blue-s); color:var(--blue); }
+  .p2 .dot-circle.active { border-color:var(--blue); background:var(--blue); }
+
+  .p3 .phase-stripe { background:linear-gradient(90deg,var(--orange),#ea580c); }
+  .p3 .phase-name { color:var(--orange); }
+  .p3 .phase-status { background:var(--orange-s); color:var(--orange); }
+  .p3 .dot-circle { border-color:var(--orange); }
+
+  .p4 .phase-stripe { background:linear-gradient(90deg,#ef4444,#b91c1c); }
+  .p4 .phase-name { color:#f87171; }
+  .p4 .phase-status { background:rgba(239,68,68,0.12); color:#f87171; }
+  .p4 .dot-circle { border-color:#ef4444; }
+
+  .p5 .phase-stripe { background:linear-gradient(90deg,var(--purple),#7c3aed); }
+  .p5 .phase-name { color:var(--purple); }
+  .p5 .phase-status { background:var(--purple-s); color:var(--purple); }
+  .p5 .dot-circle { border-color:var(--purple); }
+
+  .p6 .phase-stripe { background:linear-gradient(90deg,var(--gold),#d97706); }
+  .p6 .phase-name { color:var(--gold); }
+  .p6 .phase-status { background:var(--gold-s); color:var(--gold); }
+  .p6 .dot-circle { border-color:var(--gold); }
+
+  /* Milestone mundial */
+  .mundial-milestone { background:linear-gradient(135deg,#1a0808,#2a1010); border:1.5px solid rgba(239,68,68,0.5); border-radius:20px; padding:20px 24px; margin-bottom:16px; display:flex; align-items:center; gap:16px; }
+  .mundial-icon { font-size:40px; }
+  .mundial-info { flex:1; }
+  .mundial-title { font-size:18px; font-weight:800; color:#fff; }
+  .mundial-sub { font-size:13px; color:var(--text2); margin-top:3px; }
+  .mundial-date { text-align:right; }
+  .mundial-day { font-size:28px; font-weight:900; color:#f87171; line-height:1; }
+  .mundial-month { font-size:12px; color:var(--text2); }
+
+  /* ── Gantt tab ── */
+  .gantt { overflow-x:auto; }
+  .gantt-inner { min-width:700px; }
+  .gantt-header { display:flex; gap:0; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:12px; }
+  .gantt-label-col { width:180px; flex-shrink:0; font-size:11px; color:var(--text2); font-weight:700; text-transform:uppercase; }
+  .gantt-months { flex:1; display:flex; }
+  .gantt-month { flex:1; text-align:center; font-size:11px; color:var(--text2); font-weight:700; text-transform:uppercase; }
+  .gantt-month.current { color:var(--green); }
+  .gantt-row { display:flex; align-items:center; gap:0; margin-bottom:10px; }
+  .gantt-name { width:180px; flex-shrink:0; font-size:12px; font-weight:600; color:#d0d0e0; display:flex; align-items:center; gap:8px; }
+  .gantt-timeline { flex:1; height:28px; position:relative; background:#0e0e18; border-radius:6px; border:1px solid #1a1a28; }
+  .gantt-bar { position:absolute; top:4px; height:20px; border-radius:5px; display:flex; align-items:center; padding:0 8px; font-size:10px; font-weight:700; white-space:nowrap; overflow:hidden; }
+  .gantt-today { position:absolute; top:0; bottom:0; width:2px; background:rgba(0,200,80,0.7); z-index:5; }
+  .gantt-mundial { position:absolute; top:0; bottom:0; width:2px; background:rgba(239,68,68,0.7); z-index:5; }
+  .gantt-label-today { position:absolute; top:-18px; font-size:9px; color:var(--green); font-weight:700; transform:translateX(-50%); white-space:nowrap; }
+  .gantt-label-mundial { position:absolute; top:-18px; font-size:9px; color:#f87171; font-weight:700; transform:translateX(-50%); white-space:nowrap; }
+
+  /* ── Métricas tab ── */
+  .metrics-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
+  .metric-card { background:var(--card); border-radius:18px; padding:20px; border:1px solid var(--border); }
+  .metric-title { font-size:13px; color:var(--text2); margin-bottom:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+  .metric-big { font-size:32px; font-weight:900; line-height:1; }
+  .metric-sub { font-size:12px; color:var(--text2); margin-top:6px; }
+  .funnel { display:flex; flex-direction:column; gap:6px; }
+  .funnel-step { border-radius:10px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; }
+  .funnel-label { font-size:13px; font-weight:600; }
+  .funnel-val { font-size:14px; font-weight:800; }
+
+  /* ── Responsive ── */
+  @media(max-width:700px) {
+    .header { padding:28px 20px 24px; }
+    .content { padding:20px 16px; }
+    .tabs { padding:16px 16px 0; overflow-x:auto; }
+    .tab { white-space:nowrap; font-size:12px; padding:8px 14px; }
+    .metrics-grid { grid-template-columns:1fr; }
+    .gantt-name { width:130px; font-size:11px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-ball">⚽</div>
+      <div>
+        <div class="logo-text">Fulbo<span>App</span></div>
+        <div class="logo-sub">Roadmap de Lanzamiento · 2026</div>
+      </div>
+    </div>
+    <div class="header-badge">
+      <div class="badge-days" id="daysLeft">48</div>
+      <div class="badge-label">días para el lanzamiento</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <div class="meta-item"><div class="meta-val" style="color:var(--green);">13 May</div><div class="meta-lbl">Inicio del plan</div></div>
+    <div class="meta-item"><div class="meta-val" style="color:#f87171;">30 Jun</div><div class="meta-lbl">Lanzamiento oficial</div></div>
+    <div class="meta-item"><div class="meta-val" style="color:var(--blue);">3 fases</div><div class="meta-lbl">Pre-lanzamiento</div></div>
+    <div class="meta-item"><div class="meta-val" style="color:var(--purple);">+3 fases</div><div class="meta-lbl">Post-lanzamiento</div></div>
+    <div class="meta-item"><div class="meta-val" style="color:var(--gold);">MVP</div><div class="meta-lbl">Alquiler de canchas</div></div>
+  </div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="global-progress">
+  <div class="gp-label">
+    <span>13 May 2026</span>
+    <span>🏆 0% completado · Día 1</span>
+  </div>
+  <div class="gp-bar">
+    <div class="gp-fill" id="gpFill" style="width:1%;"></div>
+    <div class="gp-marker" style="left:1%;" title="Hoy">📍</div>
+    <div class="gp-marker" style="left:100%;background:#f87171;" title="Lanzamiento">🚀</div>
+  </div>
+  <div style="display:flex;justify-content:flex-end;margin-top:6px;font-size:11px;color:#f87171;">30 Jun · Lanzamiento 🚀</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('fases',this)">📋 Fases</div>
+  <div class="tab" onclick="showTab('gantt',this)">📊 Gantt</div>
+  <div class="tab" onclick="showTab('metricas',this)">🎯 Métricas</div>
+  <div class="tab" onclick="showTab('riesgos',this)">⚠️ Riesgos</div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- TAB: FASES                             -->
+<!-- ══════════════════════════════════════ -->
+<div class="content" id="tab-fases">
+
+  <!-- Milestone Mundial -->
+  <div class="mundial-milestone">
+    <div class="mundial-icon">🚀</div>
+    <div class="mundial-info">
+      <div class="mundial-title">🏆 Lanzamiento oficial FulboApp — Con el Mundial ya en pleno furor</div>
+      <div class="mundial-sub">CABA · GBA · La fiebre futbolera del año en su pico máximo</div>
+    </div>
+    <div class="mundial-date">
+      <div class="mundial-day">30 Jun</div>
+      <div class="mundial-month">2026</div>
+    </div>
+  </div>
+
+  <div class="phases">
+
+    <!-- FASE 1 -->
+    <div class="phase p1">
+      <div class="phase-dot">
+        <div class="dot-circle active"></div>
+        <div class="dot-line"></div>
+      </div>
+      <div class="phase-card p1" onclick="togglePhase(this)">
+        <div class="phase-stripe"></div>
+        <div class="phase-header">
+          <div class="phase-emoji">🎨</div>
+          <div class="phase-info">
+            <div class="phase-name">Fase 1 — Diseño & Arquitectura</div>
+            <div class="phase-dates">13 May – 22 May · <strong>10 días</strong></div>
+          </div>
+          <div class="phase-right">
+            <span class="phase-status">🔵 Por iniciar</span>
+            <span class="phase-toggle">▼</span>
+          </div>
+        </div>
+        <div class="phase-body">
+          <div class="task-list">
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Diseño UX/UI definitivo (wireframes + prototipo)</div><span class="task-tag" style="background:#1a1a28;color:var(--text2);">Pendiente</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Definir stack tecnológico (React Native / Flutter)</div><span class="task-tag" style="background:#1a1a28;color:var(--text2);">Pendiente</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Arquitectura de base de datos y APIs</div><span class="task-tag" style="background:#1a1a28;color:var(--text2);">Pendiente</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Setup de repositorios y entornos dev/staging/prod</div><span class="task-tag" style="background:#1a1a28;color:var(--text2);">Pendiente</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Contratar / confirmar equipo de desarrollo</div><span class="task-tag" style="background:#1a1a28;color:var(--text2);">Pendiente</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Onboarding de 5 canchas piloto (Bahía Blanca)</div><span class="task-tag" style="background:rgba(245,158,11,0.15);color:var(--gold);">Clave</span></div>
+          </div>
+          <div class="phase-kpis">
+            <div class="kpi"><div class="kpi-val" style="color:var(--green);">1</div><div class="kpi-lbl">Semana</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:var(--green);">5</div><div class="kpi-lbl">Canchas piloto</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:var(--green);">6</div><div class="kpi-lbl">Entregables</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASE 2 -->
+    <div class="phase p2">
+      <div class="phase-dot">
+        <div class="dot-circle active"></div>
+        <div class="dot-line"></div>
+      </div>
+      <div class="phase-card p2" onclick="togglePhase(this)">
+        <div class="phase-stripe"></div>
+        <div class="phase-header">
+          <div class="phase-emoji">⚙️</div>
+          <div class="phase-info">
+            <div class="phase-name">Fase 2 — Desarrollo MVP (Canchas)</div>
+            <div class="phase-dates">23 May – 12 Jun · <strong>21 días</strong></div>
+          </div>
+          <div class="phase-right">
+            <span class="phase-status">🔵 Próximo</span>
+            <span class="phase-toggle">▼</span>
+          </div>
+        </div>
+        <div class="phase-body">
+          <div class="task-list">
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Sistema de registro y login de usuarios (jugadores y admins)</div><span class="task-tag" style="background:#1a1a28;color:var(--text2);">Pendiente</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Módulo de búsqueda de canchas con geolocalización</div><span class="task-tag" style="background:rgba(245,158,11,0.15);color:var(--gold);">Clave</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Flujo completo de reserva y selección de horarios</div><span class="task-tag" style="background:rgba(245,158,11,0.15);color:var(--gold);">Clave</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Integración de pagos: MercadoPago + transferencia</div><span class="task-tag" style="background:rgba(239,68,68,0.15);color:var(--red);">Crítico</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Panel de administración para dueños de canchas</div><span class="task-tag" style="background:rgba(245,158,11,0.15);color:var(--gold);">Clave</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Notificaciones push (confirmación, recordatorio, cancelación)</div><span class="task-tag" style="background:#1a1a28;color:var(--text2);">Pendiente</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Sistema de calificaciones y reseñas</div><span class="task-tag" style="background:#1a1a28;color:var(--text2);">Pendiente</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Buscador de jugadores: filtros por posición, nivel y zona</div><span class="task-tag" style="background:rgba(245,158,11,0.15);color:var(--gold);">Clave</span></div>
+          </div>
+          <div class="phase-kpis">
+            <div class="kpi"><div class="kpi-val" style="color:var(--blue);">3</div><div class="kpi-lbl">Semanas</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:var(--blue);">2</div><div class="kpi-lbl">Integraciones pago</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:var(--blue);">7</div><div class="kpi-lbl">Features</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASE 3 -->
+    <div class="phase p3">
+      <div class="phase-dot">
+        <div class="dot-circle pending"></div>
+        <div class="dot-line"></div>
+      </div>
+      <div class="phase-card p3" onclick="togglePhase(this)">
+        <div class="phase-stripe"></div>
+        <div class="phase-header">
+          <div class="phase-emoji">🧪</div>
+          <div class="phase-info">
+            <div class="phase-name">Fase 3 — QA, Beta y Lanzamiento</div>
+            <div class="phase-dates">13 Jun – 30 Jun · <strong>18 días</strong></div>
+          </div>
+          <div class="phase-right">
+            <span class="phase-status">🟠 Pendiente</span>
+            <span class="phase-toggle">▼</span>
+          </div>
+        </div>
+        <div class="phase-body">
+          <div class="task-list">
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Testing con 50 usuarios beta (jugadores reales de Bahía Blanca)</div><span class="task-tag" style="background:rgba(239,68,68,0.15);color:var(--red);">Crítico</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Publicación en App Store y Google Play</div><span class="task-tag" style="background:rgba(239,68,68,0.15);color:var(--red);">Crítico</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Campaña pre-lanzamiento en redes (Instagram, TikTok)</div><span class="task-tag" style="background:rgba(245,158,11,0.15);color:var(--gold);">Clave</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Onboarding de 20 canchas adicionales (Bahía Blanca + zona sur)</div><span class="task-tag" style="background:rgba(245,158,11,0.15);color:var(--gold);">Clave</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Corrección de bugs críticos y optimización de performance</div><span class="task-tag" style="background:#1a1a28;color:var(--text2);">Pendiente</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">🚀 LANZAMIENTO OFICIAL — 30 de junio</div><span class="task-tag" style="background:rgba(239,68,68,0.3);color:#f87171;font-size:10px;">Lanzamiento</span></div>
+          </div>
+          <div class="phase-kpis">
+            <div class="kpi"><div class="kpi-val" style="color:var(--orange);">100</div><div class="kpi-lbl">Beta testers</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:var(--orange);">25</div><div class="kpi-lbl">Canchas al lanzar</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:var(--orange);">2</div><div class="kpi-lbl">Stores</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Divisor post-lanzamiento -->
+    <div style="display:flex;align-items:center;gap:12px;margin:8px 0 16px 76px;">
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <div style="font-size:11px;color:#f87171;font-weight:700;white-space:nowrap;">🚀 POST-LANZAMIENTO · CRECIMIENTO</div>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
+
+    <!-- FASE 4 -->
+    <div class="phase p4">
+      <div class="phase-dot">
+        <div class="dot-circle pending"></div>
+        <div class="dot-line"></div>
+      </div>
+      <div class="phase-card p4" onclick="togglePhase(this)">
+        <div class="phase-stripe"></div>
+        <div class="phase-header">
+          <div class="phase-emoji">🚀</div>
+          <div class="phase-info">
+            <div class="phase-name">Fase 4 — Crecimiento inicial</div>
+            <div class="phase-dates">1 Jul – 31 Jul · <strong>31 días</strong></div>
+          </div>
+          <div class="phase-right">
+            <span class="phase-status">⏳ Post-lanzamiento</span>
+            <span class="phase-toggle">▼</span>
+          </div>
+        </div>
+        <div class="phase-body">
+          <div class="task-list">
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Módulo de torneos amateur (inscripción + tabla de posiciones)</div><span class="task-tag" style="background:rgba(245,158,11,0.15);color:var(--gold);">V2</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Sección "Jugadores disponibles" con perfiles y búsqueda</div><span class="task-tag" style="background:rgba(245,158,11,0.15);color:var(--gold);">V2</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Expansión a Rosario y Córdoba</div><span class="task-tag" style="background:#1a1a28;color:var(--text2);">Pendiente</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Sistema de equipos y convocatorias</div><span class="task-tag" style="background:rgba(245,158,11,0.15);color:var(--gold);">V2</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Meta: 1.000 usuarios activos, 50 canchas</div><span class="task-tag" style="background:rgba(239,68,68,0.15);color:var(--red);">KPI</span></div>
+          </div>
+          <div class="phase-kpis">
+            <div class="kpi"><div class="kpi-val" style="color:#f87171;">1.000</div><div class="kpi-lbl">Usuarios meta</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:#f87171;">50</div><div class="kpi-lbl">Canchas meta</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:#f87171;">3</div><div class="kpi-lbl">Ciudades</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASE 5 -->
+    <div class="phase p5">
+      <div class="phase-dot">
+        <div class="dot-circle pending"></div>
+        <div class="dot-line"></div>
+      </div>
+      <div class="phase-card p5" onclick="togglePhase(this)">
+        <div class="phase-stripe"></div>
+        <div class="phase-header">
+          <div class="phase-emoji">🏪</div>
+          <div class="phase-info">
+            <div class="phase-name">Fase 5 — Tienda & Comunidad</div>
+            <div class="phase-dates">Ago – Sep 2026 · <strong>2 meses</strong></div>
+          </div>
+          <div class="phase-right">
+            <span class="phase-status">🟣 Planificado</span>
+            <span class="phase-toggle">▼</span>
+          </div>
+        </div>
+        <div class="phase-body">
+          <div class="task-list">
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Tienda de indumentaria deportiva (Adidas, Nike, Puma y marcas locales)</div><span class="task-tag" style="background:rgba(139,92,246,0.15);color:var(--purple);">V3</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Sistema de chat entre jugadores y equipos</div><span class="task-tag" style="background:rgba(139,92,246,0.15);color:var(--purple);">V3</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Feed de actividad social (goles, resultados, logros)</div><span class="task-tag" style="background:rgba(139,92,246,0.15);color:var(--purple);">V3</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Programa de puntos y fidelización</div><span class="task-tag" style="background:#1a1a28;color:var(--text2);">Pendiente</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Meta: 5.000 usuarios, 200 canchas, 10 ciudades</div><span class="task-tag" style="background:rgba(239,68,68,0.15);color:var(--red);">KPI</span></div>
+          </div>
+          <div class="phase-kpis">
+            <div class="kpi"><div class="kpi-val" style="color:var(--purple);">5.000</div><div class="kpi-lbl">Usuarios meta</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:var(--purple);">200</div><div class="kpi-lbl">Canchas meta</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:var(--purple);">10</div><div class="kpi-lbl">Ciudades</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASE 6 -->
+    <div class="phase p6">
+      <div class="phase-dot">
+        <div class="dot-circle pending"></div>
+        <div class="dot-line"></div>
+      </div>
+      <div class="phase-card p6" onclick="togglePhase(this)">
+        <div class="phase-stripe"></div>
+        <div class="phase-header">
+          <div class="phase-emoji">🌎</div>
+          <div class="phase-info">
+            <div class="phase-name">Fase 6 — Expansión regional</div>
+            <div class="phase-dates">Oct – Dic 2026 · <strong>3 meses</strong></div>
+          </div>
+          <div class="phase-right">
+            <span class="phase-status">🟡 Planificado</span>
+            <span class="phase-toggle">▼</span>
+          </div>
+        </div>
+        <div class="phase-body">
+          <div class="task-list">
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Expansión a Chile, Uruguay y Paraguay</div><span class="task-tag" style="background:rgba(245,158,11,0.15);color:var(--gold);">Internacional</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Multi-moneda y multi-idioma</div><span class="task-tag" style="background:rgba(245,158,11,0.15);color:var(--gold);">Internacional</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">API pública para integraciones con clubes y ligas</div><span class="task-tag" style="background:#1a1a28;color:var(--text2);">Pendiente</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Modelo SaaS para administradores de complejos deportivos</div><span class="task-tag" style="background:rgba(245,158,11,0.15);color:var(--gold);">Negocio</span></div>
+            <div class="task-item"><div class="task-check todo"></div><div class="task-text">Meta: 20.000 usuarios, 4 países</div><span class="task-tag" style="background:rgba(239,68,68,0.15);color:var(--red);">KPI</span></div>
+          </div>
+          <div class="phase-kpis">
+            <div class="kpi"><div class="kpi-val" style="color:var(--gold);">20.000</div><div class="kpi-lbl">Usuarios meta</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:var(--gold);">4</div><div class="kpi-lbl">Países</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:var(--gold);">SaaS</div><div class="kpi-lbl">Modelo B2B</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /phases -->
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- TAB: GANTT                             -->
+<!-- ══════════════════════════════════════ -->
+<div class="content" id="tab-gantt" style="display:none;">
+  <div class="gantt">
+    <div class="gantt-inner">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:16px;">Período: Abril – Septiembre 2026 · <span style="color:var(--green);">▏ Hoy</span> · <span style="color:#f87171;">▏ Lanzamiento 30 Jun</span></div>
+      <div class="gantt-header">
+        <div class="gantt-label-col">Módulo</div>
+        <div class="gantt-months">
+          <div class="gantt-month current">MAY</div>
+          <div class="gantt-month current">JUN</div>
+          <div class="gantt-month">JUL</div>
+          <div class="gantt-month">AGO</div>
+          <div class="gantt-month">SEP</div>
+          <div class="gantt-month">OCT</div>
+        </div>
+      </div>
+      <div id="ganttRows"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- TAB: MÉTRICAS                          -->
+<!-- ══════════════════════════════════════ -->
+<div class="content" id="tab-metricas" style="display:none;">
+
+  <div style="font-size:13px;color:var(--text2);margin-bottom:20px;">Objetivos y KPIs clave para medir el éxito del lanzamiento</div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-title">🎯 Usuarios al lanzar</div>
+      <div class="metric-big" style="color:var(--green);">500</div>
+      <div class="metric-sub">registros en primeras 48 hs · tracción del Mundial</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">🏟️ Canchas en la plataforma</div>
+      <div class="metric-big" style="color:var(--blue);">25</div>
+      <div class="metric-sub">en Bahía Blanca al día del lanzamiento</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">💰 Reservas en mes 1</div>
+      <div class="metric-big" style="color:var(--orange);">300</div>
+      <div class="metric-sub">reservas confirmadas en junio</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">⭐ NPS objetivo</div>
+      <div class="metric-big" style="color:var(--gold);">+60</div>
+      <div class="metric-sub">Net Promoter Score en beta testers</div>
+    </div>
+  </div>
+
+  <!-- Funnel de conversión -->
+  <div style="font-size:14px;font-weight:700;color:var(--text);margin:8px 0 12px;">Funnel de conversión esperado · Mes 1</div>
+  <div class="funnel" style="margin-bottom:24px;">
+    <div class="funnel-step" style="background:rgba(0,200,80,0.12);border:1px solid rgba(0,200,80,0.25);">
+      <span class="funnel-label">👀 Impresiones (redes + boca a boca)</span>
+      <span class="funnel-val" style="color:var(--green);">50.000</span>
+    </div>
+    <div style="text-align:center;font-size:18px;color:var(--text2);line-height:1;">▼</div>
+    <div class="funnel-step" style="background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.25);">
+      <span class="funnel-label">📲 Descargas de la app</span>
+      <span class="funnel-val" style="color:var(--blue);">5.000 · 10%</span>
+    </div>
+    <div style="text-align:center;font-size:18px;color:var(--text2);line-height:1;">▼</div>
+    <div class="funnel-step" style="background:rgba(249,115,22,0.12);border:1px solid rgba(249,115,22,0.25);">
+      <span class="funnel-label">✅ Registros completados</span>
+      <span class="funnel-val" style="color:var(--orange);">2.000 · 40%</span>
+    </div>
+    <div style="text-align:center;font-size:18px;color:var(--text2);line-height:1;">▼</div>
+    <div class="funnel-step" style="background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.25);">
+      <span class="funnel-label">🏟️ Hicieron al menos 1 búsqueda</span>
+      <span class="funnel-val" style="color:var(--purple);">1.200 · 60%</span>
+    </div>
+    <div style="text-align:center;font-size:18px;color:var(--text2);line-height:1;">▼</div>
+    <div class="funnel-step" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);">
+      <span class="funnel-label">⚽ Realizaron al menos 1 reserva</span>
+      <span class="funnel-val" style="color:var(--gold);">300 · 25%</span>
+    </div>
+  </div>
+
+  <!-- Modelo de negocio -->
+  <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;">💼 Modelo de monetización</div>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+    <div style="background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <div><div style="font-size:13px;font-weight:700;color:var(--text);">Comisión por reserva</div><div style="font-size:11px;color:var(--text2);">Se cobra al dueño de cancha</div></div>
+      <div style="font-size:16px;font-weight:800;color:var(--green);">8 – 10%</div>
+    </div>
+    <div style="background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <div><div style="font-size:13px;font-weight:700;color:var(--text);">Plan Premium para canchas</div><div style="font-size:11px;color:var(--text2);">Destacado, analíticas avanzadas, prioridad</div></div>
+      <div style="font-size:16px;font-weight:800;color:var(--blue);">$15.000/mes</div>
+    </div>
+    <div style="background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <div><div style="font-size:13px;font-weight:700;color:var(--text);">Comisión tienda indumentaria</div><div style="font-size:11px;color:var(--text2);">Marketplace de productos (Fase 5)</div></div>
+      <div style="font-size:16px;font-weight:800;color:var(--orange);">12 – 15%</div>
+    </div>
+    <div style="background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <div><div style="font-size:13px;font-weight:700;color:var(--text);">Inscripción a torneos</div><div style="font-size:11px;color:var(--text2);">Fee de gestión de torneo (Fase 4)</div></div>
+      <div style="font-size:16px;font-weight:800;color:var(--purple);">5%</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- TAB: RIESGOS                           -->
+<!-- ══════════════════════════════════════ -->
+<div class="content" id="tab-riesgos" style="display:none;">
+  <div style="font-size:13px;color:var(--text2);margin-bottom:20px;">Riesgos identificados y plan de mitigación</div>
+
+  <div style="display:flex;flex-direction:column;gap:10px;">
+
+    <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:16px;padding:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div style="font-size:14px;font-weight:700;color:#f87171;">⚠️ Plazo muy ajustado (47 días al MVP)</div>
+        <span style="font-size:10px;background:rgba(239,68,68,0.2);color:#f87171;padding:3px 10px;border-radius:20px;font-weight:700;">ALTO</span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;"><strong style="color:#d0d0e0;">Mitigación:</strong> Priorizar el flujo mínimo viable de reservas (buscar → reservar → pagar). Usar Firebase + soluciones no-code para reducir tiempo de desarrollo. Tener un equipo de 3-4 devs dedicados full-time.</div>
+    </div>
+
+    <div style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.3);border-radius:16px;padding:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div style="font-size:14px;font-weight:700;color:var(--orange);">⚠️ Rechazo de App Store / Play Store</div>
+        <span style="font-size:10px;background:rgba(249,115,22,0.2);color:var(--orange);padding:3px 10px;border-radius:20px;font-weight:700;">ALTO</span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;"><strong style="color:#d0d0e0;">Mitigación:</strong> Iniciar el proceso de revisión 2-3 semanas antes del lanzamiento. Tener lista una versión web (PWA) como plan B para el día del Mundial.</div>
+    </div>
+
+    <div style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.3);border-radius:16px;padding:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div style="font-size:14px;font-weight:700;color:var(--orange);">⚠️ Pocas canchas al lanzar (oferta escasa)</div>
+        <span style="font-size:10px;background:rgba(249,115,22,0.2);color:var(--orange);padding:3px 10px;border-radius:20px;font-weight:700;">MEDIO</span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;"><strong style="color:#d0d0e0;">Mitigación:</strong> Arrancar comercialmente YA con el onboarding de canchas piloto. Ofrecer los primeros 3 meses sin comisión para acelerar adopción.</div>
+    </div>
+
+    <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:16px;padding:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div style="font-size:14px;font-weight:700;color:var(--gold);">⚠️ Competencia de apps existentes</div>
+        <span style="font-size:10px;background:rgba(245,158,11,0.2);color:var(--gold);padding:3px 10px;border-radius:20px;font-weight:700;">MEDIO</span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;"><strong style="color:#d0d0e0;">Mitigación:</strong> Diferenciarse con la experiencia social (equipos, torneos, jugadores disponibles) que otras apps no tienen. El timing del Mundial es una ventana única.</div>
+    </div>
+
+    <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.3);border-radius:16px;padding:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div style="font-size:14px;font-weight:700;color:#818cf8;">⚠️ Problemas con integración de pagos</div>
+        <span style="font-size:10px;background:rgba(99,102,241,0.2);color:#818cf8;padding:3px 10px;border-radius:20px;font-weight:700;">BAJO-MEDIO</span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;"><strong style="color:#d0d0e0;">Mitigación:</strong> MercadoPago tiene SDK bien documentado. Permitir efectivo y transferencia como opciones alternativas desde el día 1 para no bloquear reservas.</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Tabs ──
+function showTab(id, el) {
+  ['fases','gantt','metricas','riesgos'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===id ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  if (id === 'gantt') buildGantt();
+}
+
+// ── Toggle phases ──
+function togglePhase(card) {
+  const wasExp = card.classList.contains('expanded');
+  card.classList.toggle('expanded');
+}
+
+// ── Days countdown ──
+(function() {
+  const launch = new Date('2026-06-30');
+  const today  = new Date();
+  const diff   = Math.ceil((launch - today) / 86400000);
+  document.getElementById('daysLeft').textContent = Math.max(0, diff);
+})();
+
+// ── Gantt ──
+function buildGantt() {
+  const container = document.getElementById('ganttRows');
+  if (container.dataset.built) return;
+  container.dataset.built = '1';
+
+  // Total range: Apr 25 – Sep 30 = 158 days
+  const start = new Date('2026-05-13');
+  const end   = new Date('2026-09-30');
+  const total = (end - start) / 86400000;
+  const todayPct  = ((new Date() - start) / 86400000 / total * 100).toFixed(1);
+  const lanzamientoPct= ((new Date('2026-06-30') - start) / 86400000 / total * 100).toFixed(1);
+
+  const rows = [
+    { name:'🎨 Diseño & Arch.',  from:'2026-05-13', to:'2026-05-22', color:'#00c850' },
+    { name:'⚙️ Dev MVP Canchas', from:'2026-05-23', to:'2026-06-12', color:'#3b82f6' },
+    { name:'🔐 Pagos (MercPago)',from:'2026-05-28', to:'2026-06-12', color:'#6366f1' },
+    { name:'👤 Panel Admin',     from:'2026-05-23', to:'2026-06-07', color:'#8b5cf6' },
+    { name:'🧪 QA & Beta',       from:'2026-06-13', to:'2026-06-25', color:'#f97316' },
+    { name:'📱 App Store launch',from:'2026-06-18', to:'2026-06-30', color:'#ef4444' },
+    { name:'📣 Campaña RRSS',    from:'2026-06-13', to:'2026-06-30', color:'#f59e0b' },
+    { name:'🏆 Torneos (V2)',    from:'2026-07-01', to:'2026-07-31', color:'#ef4444', post:true },
+    { name:'🔍 Jugadores (V2)',  from:'2026-07-05', to:'2026-07-31', color:'#ef4444', post:true },
+    { name:'🏪 Tienda (V3)',     from:'2026-08-01', to:'2026-09-30', color:'#8b5cf6', post:true },
+  ];
+
+  rows.forEach(r => {
+    const pFrom = Math.max(0, ((new Date(r.from)-start)/86400000/total*100));
+    const pTo   = Math.min(100, ((new Date(r.to)  -start)/86400000/total*100));
+    const pW    = pTo - pFrom;
+
+    const row = document.createElement('div');
+    row.className = 'gantt-row';
+    row.innerHTML = `
+      <div class="gantt-name" style="${r.post?'opacity:0.6':''}">
+        <span style="font-size:11px;">${r.name}</span>
+      </div>
+      <div class="gantt-timeline">
+        <div class="gantt-today" style="left:${todayPct}%">
+          <div class="gantt-label-today">Hoy</div>
+        </div>
+        <div class="gantt-mundial" style="left:${lanzamientoPct}%">
+          <div class="gantt-label-mundial">🚀 30 Jun</div>
+        </div>
+        <div class="gantt-bar" style="left:${pFrom}%;width:${pW}%;background:${r.color};opacity:${r.post?0.5:0.85};">
+          ${pW > 6 ? '<span style="color:#000;font-weight:700;">' + (r.post?'V2+':'MVP') + '</span>' : ''}
+        </div>
+      </div>`;
+    container.appendChild(row);
+  });
+}
+</script>
+</body>
+</html>

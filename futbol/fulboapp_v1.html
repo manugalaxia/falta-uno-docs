@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FulboApp – Fútbol Amateur Argentina</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a0f; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  /* Phone Frame */
+  .phone { width: 390px; height: 844px; background: #111117; border-radius: 50px; overflow: hidden; position: relative; box-shadow: 0 0 0 12px #1a1a24, 0 0 0 14px #2a2a3a, 0 30px 80px rgba(0,0,0,0.8); display: flex; flex-direction: column; }
+  .phone-notch { width: 120px; height: 30px; background: #1a1a24; border-radius: 0 0 20px 20px; position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 100; }
+  .status-bar { background: transparent; padding: 12px 24px 0; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #aaa; position: absolute; top: 0; left: 0; right: 0; z-index: 99; }
+  .status-bar .time { font-weight: 600; color: #fff; font-size: 14px; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+
+  /* Screens Container */
+  .screens { flex: 1; position: relative; overflow: hidden; }
+  .screen { position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; overflow-x: hidden; display: none; flex-direction: column; background: #111117; }
+  .screen.active { display: flex; }
+  .screen::-webkit-scrollbar { display: none; }
+
+  /* Bottom Nav */
+  .bottom-nav { height: 80px; background: rgba(17,17,23,0.97); border-top: 1px solid #222230; display: flex; align-items: center; justify-content: space-around; padding: 0 8px 12px; position: relative; z-index: 50; flex-shrink: 0; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 8px 12px; border-radius: 16px; transition: all 0.2s; flex: 1; }
+  .nav-item:hover { background: rgba(255,255,255,0.05); }
+  .nav-item.active { background: rgba(0,200,80,0.12); }
+  .nav-icon { font-size: 22px; line-height: 1; }
+  .nav-label { font-size: 10px; color: #666; font-weight: 500; }
+  .nav-item.active .nav-label { color: #00c850; }
+
+  /* Colors */
+  :root {
+    --green: #00c850;
+    --green-dark: #009940;
+    --blue: #2563eb;
+    --orange: #f97316;
+    --red: #ef4444;
+    --gold: #f59e0b;
+    --bg: #111117;
+    --bg2: #17171f;
+    --bg3: #1e1e28;
+    --card: #1e1e28;
+    --border: #2a2a38;
+    --text: #f0f0f5;
+    --text2: #9090a8;
+  }
+
+  /* ===== SPLASH SCREEN ===== */
+  #splash { background: linear-gradient(160deg, #0d2b1a 0%, #0a1628 50%, #1a0d28 100%); justify-content: center; align-items: center; }
+  .splash-logo { text-align: center; animation: fadeInUp 0.8s ease; }
+  .splash-ball { font-size: 72px; margin-bottom: 16px; animation: spin 3s linear infinite; display: inline-block; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+  .splash-title { font-size: 40px; font-weight: 900; color: #fff; letter-spacing: -1px; }
+  .splash-title span { color: var(--green); }
+  .splash-sub { color: #9090a8; font-size: 15px; margin-top: 8px; margin-bottom: 48px; }
+  .splash-btn { background: var(--green); color: #000; font-weight: 800; font-size: 16px; border: none; border-radius: 20px; padding: 16px 48px; cursor: pointer; letter-spacing: 0.3px; transition: all 0.2s; box-shadow: 0 8px 24px rgba(0,200,80,0.4); }
+  .splash-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,200,80,0.5); }
+  .splash-login { color: var(--text2); font-size: 13px; margin-top: 20px; cursor: pointer; }
+  .splash-login span { color: var(--green); }
+  .splash-dots { display: flex; gap: 8px; margin-top: 40px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #333; }
+  .dot.active { background: var(--green); width: 24px; border-radius: 4px; }
+
+  /* ===== SHARED COMPONENTS ===== */
+  .screen-header { padding: 52px 20px 16px; background: var(--bg); position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); }
+  .screen-header h1 { font-size: 24px; font-weight: 800; color: var(--text); }
+  .screen-header p { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+  .card { background: var(--card); border-radius: 20px; padding: 18px; margin: 0 16px 12px; border: 1px solid var(--border); }
+  .card-row { display: flex; align-items: center; gap: 12px; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; background: var(--bg3); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 12px; color: var(--text2); cursor: pointer; transition: all 0.2s; }
+  .chip.active, .chip:hover { background: rgba(0,200,80,0.15); border-color: var(--green); color: var(--green); }
+  .badge { background: var(--green); color: #000; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+  .badge-orange { background: var(--orange); color: #fff; }
+  .badge-blue { background: var(--blue); color: #fff; }
+  .badge-red { background: var(--red); color: #fff; }
+  .btn-primary { background: var(--green); color: #000; font-weight: 700; font-size: 14px; border: none; border-radius: 14px; padding: 12px 20px; cursor: pointer; width: 100%; transition: all 0.2s; }
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-outline { background: transparent; color: var(--green); font-weight: 600; font-size: 14px; border: 1.5px solid var(--green); border-radius: 14px; padding: 11px 20px; cursor: pointer; transition: all 0.2s; }
+  .search-bar { background: var(--bg3); border: 1px solid var(--border); border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; margin: 12px 16px; }
+  .search-bar input { background: none; border: none; outline: none; color: var(--text); font-size: 14px; flex: 1; }
+  .search-bar input::placeholder { color: var(--text2); }
+  .section-title { font-size: 16px; font-weight: 700; color: var(--text); margin: 16px 16px 10px; display: flex; justify-content: space-between; align-items: center; }
+  .section-title span { font-size: 12px; color: var(--green); font-weight: 600; cursor: pointer; }
+  .avatar { width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(135deg, var(--green), #005530); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .avatar-sm { width: 36px; height: 36px; border-radius: 10px; font-size: 16px; }
+  .rating { color: var(--gold); font-size: 12px; font-weight: 600; }
+  .divider { height: 1px; background: var(--border); margin: 8px 16px; }
+  .tag { background: var(--bg3); border-radius: 8px; padding: 3px 8px; font-size: 11px; color: var(--text2); }
+
+  /* ===== HOME SCREEN ===== */
+  #home { }
+  .home-header { padding: 52px 20px 20px; background: linear-gradient(180deg, #0d2b1a 0%, var(--bg) 100%); }
+  .home-greeting { font-size: 13px; color: var(--text2); }
+  .home-name { font-size: 26px; font-weight: 800; color: var(--text); margin-top: 2px; }
+  .home-name span { color: var(--green); }
+  .home-location { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text2); margin-top: 6px; }
+  .home-stats { display: flex; gap: 12px; margin-top: 16px; }
+  .home-stat { background: rgba(255,255,255,0.06); border-radius: 14px; padding: 10px 14px; flex: 1; text-align: center; border: 1px solid rgba(255,255,255,0.08); }
+  .home-stat-val { font-size: 20px; font-weight: 800; color: var(--text); }
+  .home-stat-lbl { font-size: 10px; color: var(--text2); margin-top: 2px; }
+  .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 16px; }
+  .qa-item { background: var(--card); border-radius: 18px; padding: 14px 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; border: 1px solid var(--border); transition: all 0.2s; }
+  .qa-item:hover { border-color: var(--green); transform: translateY(-2px); }
+  .qa-icon { font-size: 26px; }
+  .qa-label { font-size: 11px; color: var(--text2); text-align: center; font-weight: 500; }
+  .prox-partido { background: linear-gradient(135deg, #0d2b1a, #0a1628); border-radius: 20px; margin: 0 16px 16px; padding: 18px; border: 1px solid rgba(0,200,80,0.3); position: relative; overflow: hidden; }
+  .prox-partido::before { content: ''; position: absolute; top: -30px; right: -30px; width: 100px; height: 100px; background: rgba(0,200,80,0.1); border-radius: 50%; }
+  .prox-label { font-size: 11px; color: var(--green); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .prox-title { font-size: 18px; font-weight: 700; color: #fff; margin: 4px 0; }
+  .prox-meta { font-size: 12px; color: var(--text2); }
+  .prox-actions { display: flex; gap: 10px; margin-top: 14px; }
+  .news-card { background: var(--card); border-radius: 20px; margin: 0 16px 12px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; }
+  .news-img { height: 120px; background: linear-gradient(135deg, #1a2040, #2a1a40); display: flex; align-items: center; justify-content: center; font-size: 48px; }
+  .news-body { padding: 12px 14px; }
+  .news-cat { font-size: 10px; color: var(--green); font-weight: 700; text-transform: uppercase; }
+  .news-title { font-size: 14px; font-weight: 600; color: var(--text); margin-top: 4px; line-height: 1.3; }
+
+  /* ===== CANCHAS SCREEN ===== */
+  .map-placeholder { height: 200px; background: linear-gradient(135deg, #0a1628 0%, #1a2a1a 100%); margin: 0 16px 16px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; border: 1px solid var(--border); position: relative; overflow: hidden; cursor: pointer; }
+  .map-pins { position: absolute; inset: 0; }
+  .map-pin { position: absolute; font-size: 24px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+  .cancha-card { background: var(--card); border-radius: 20px; margin: 0 16px 12px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; }
+  .cancha-card:hover { border-color: var(--green); transform: translateY(-2px); }
+  .cancha-img { height: 130px; background: linear-gradient(135deg, #0a2a0a 0%, #1a4a1a 100%); display: flex; align-items: center; justify-content: center; font-size: 50px; position: relative; }
+  .cancha-badge { position: absolute; top: 10px; right: 10px; }
+  .cancha-info { padding: 14px; }
+  .cancha-name { font-size: 16px; font-weight: 700; color: var(--text); }
+  .cancha-addr { font-size: 12px; color: var(--text2); margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+  .cancha-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  .cancha-price { font-size: 18px; font-weight: 800; color: var(--green); }
+  .cancha-price span { font-size: 12px; color: var(--text2); font-weight: 400; }
+  .cancha-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .horarios-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 16px 16px; }
+  .horario-slot { background: var(--bg3); border: 1.5px solid var(--border); border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .horario-slot:hover, .horario-slot.sel { background: rgba(0,200,80,0.15); border-color: var(--green); }
+  .horario-slot.ocupado { opacity: 0.4; cursor: not-allowed; }
+  .horario-time { font-size: 14px; font-weight: 700; color: var(--text); }
+  .horario-dur { font-size: 11px; color: var(--text2); }
+
+  /* ===== TORNEOS SCREEN ===== */
+  .torneo-card { background: var(--card); border-radius: 20px; margin: 0 16px 12px; padding: 16px; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; }
+  .torneo-card:hover { border-color: var(--green); }
+  .torneo-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .torneo-name { font-size: 16px; font-weight: 700; color: var(--text); }
+  .torneo-org { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .torneo-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .torneo-meta-item { background: var(--bg3); border-radius: 10px; padding: 8px 10px; }
+  .torneo-meta-label { font-size: 10px; color: var(--text2); text-transform: uppercase; }
+  .torneo-meta-val { font-size: 13px; font-weight: 600; color: var(--text); margin-top: 2px; }
+  .progress-bar { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; margin: 10px 0 4px; }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 3px; }
+  .fixture-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .fixture-team { display: flex; align-items: center; gap: 8px; flex: 1; }
+  .fixture-team.right { flex-direction: row-reverse; }
+  .fixture-score { font-size: 18px; font-weight: 800; color: var(--text); padding: 0 12px; text-align: center; min-width: 60px; }
+  .fixture-team-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .team-badge { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, var(--green), #005530); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .tabla-row { display: flex; align-items: center; padding: 10px 16px; border-bottom: 1px solid rgba(42,42,56,0.5); }
+  .tabla-pos { width: 24px; font-size: 12px; font-weight: 700; color: var(--text2); }
+  .tabla-pos.top3 { color: var(--green); }
+  .tabla-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--text); margin-left: 8px; }
+  .tabla-stats { display: flex; gap: 16px; }
+  .tabla-stat { font-size: 12px; color: var(--text2); text-align: center; min-width: 20px; }
+  .tabla-stat.pts { font-weight: 700; color: var(--text); }
+
+  /* ===== TIENDA SCREEN ===== */
+  .categories-scroll { display: flex; gap: 10px; padding: 12px 16px; overflow-x: auto; }
+  .categories-scroll::-webkit-scrollbar { display: none; }
+  .cat-item { background: var(--bg3); border: 1.5px solid var(--border); border-radius: 16px; padding: 8px 16px; white-space: nowrap; font-size: 13px; font-weight: 600; color: var(--text2); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+  .cat-item.active { background: rgba(0,200,80,0.15); border-color: var(--green); color: var(--green); }
+  .products-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 16px 16px; }
+  .product-card { background: var(--card); border-radius: 18px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; }
+  .product-card:hover { border-color: var(--green); transform: translateY(-2px); }
+  .product-img { height: 130px; background: linear-gradient(135deg, #1a1a2f, #2a1a3a); display: flex; align-items: center; justify-content: center; font-size: 50px; position: relative; }
+  .product-fav { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.5); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .product-info { padding: 10px 12px 12px; }
+  .product-brand { font-size: 10px; color: var(--text2); font-weight: 600; text-transform: uppercase; }
+  .product-name { font-size: 13px; font-weight: 700; color: var(--text); margin-top: 2px; line-height: 1.2; }
+  .product-price { font-size: 16px; font-weight: 800; color: var(--green); margin-top: 6px; }
+  .product-price-old { font-size: 11px; color: var(--text2); text-decoration: line-through; margin-left: 4px; }
+  .product-add { background: var(--bg3); border: none; border-radius: 10px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; float: right; margin-top: -4px; transition: all 0.2s; }
+  .product-add:hover { background: var(--green); color: #000; }
+  .cart-fab { position: fixed; bottom: 100px; right: 20px; background: var(--green); border: none; border-radius: 50%; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; box-shadow: 0 4px 20px rgba(0,200,80,0.5); z-index: 20; }
+  .cart-count { position: absolute; top: -4px; right: -4px; background: var(--red); color: #fff; font-size: 10px; font-weight: 700; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+  /* ===== COMUNIDAD SCREEN ===== */
+  .comm-tabs { display: flex; gap: 0; margin: 12px 16px; background: var(--bg3); border-radius: 14px; padding: 4px; }
+  .comm-tab { flex: 1; padding: 8px; text-align: center; font-size: 13px; font-weight: 600; color: var(--text2); border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+  .comm-tab.active { background: var(--green); color: #000; }
+  .equipo-card { background: var(--card); border-radius: 20px; margin: 0 16px 12px; padding: 16px; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; }
+  .equipo-card:hover { border-color: var(--green); }
+  .equipo-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .equipo-badge { width: 52px; height: 52px; border-radius: 16px; background: linear-gradient(135deg, #1a2a3a, #2a1a4a); display: flex; align-items: center; justify-content: center; font-size: 26px; }
+  .equipo-name { font-size: 17px; font-weight: 700; color: var(--text); }
+  .equipo-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .equipo-stats { display: flex; gap: 8px; }
+  .equipo-stat { background: var(--bg3); border-radius: 10px; padding: 6px 10px; text-align: center; flex: 1; }
+  .equipo-stat-val { font-size: 15px; font-weight: 700; color: var(--text); }
+  .equipo-stat-lbl { font-size: 10px; color: var(--text2); }
+  .equipo-members { display: flex; margin-top: 10px; }
+  .member-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--green), #005530); border: 2px solid var(--card); margin-left: -6px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+  .member-avatar:first-child { margin-left: 0; }
+  .member-more { background: var(--bg3); color: var(--text2); font-size: 10px; font-weight: 600; }
+  .chat-list { }
+  .chat-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid rgba(42,42,56,0.5); cursor: pointer; transition: background 0.2s; }
+  .chat-item:hover { background: rgba(255,255,255,0.03); }
+  .chat-ava { width: 48px; height: 48px; border-radius: 16px; background: linear-gradient(135deg, #1a3a2a, #2a1a4a); display: flex; align-items: center; justify-content: center; font-size: 22px; position: relative; flex-shrink: 0; }
+  .chat-online { width: 12px; height: 12px; background: var(--green); border-radius: 50%; border: 2px solid var(--bg); position: absolute; bottom: 0; right: 0; }
+  .chat-name { font-size: 14px; font-weight: 700; color: var(--text); }
+  .chat-preview { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .chat-meta { text-align: right; }
+  .chat-time { font-size: 11px; color: var(--text2); }
+  .chat-unread { background: var(--green); color: #000; font-size: 10px; font-weight: 700; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: 4px; margin-left: auto; }
+
+  /* ===== JUGADORES SCREEN ===== */
+  .jugador-card { background: var(--card); border-radius: 20px; margin: 0 16px 12px; padding: 16px; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; }
+  .jugador-card:hover { border-color: var(--green); }
+  .jugador-header { display: flex; align-items: center; gap: 12px; }
+  .jugador-avatar { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--green), #005530); display: flex; align-items: center; justify-content: center; font-size: 26px; border: 2px solid rgba(0,200,80,0.3); flex-shrink: 0; }
+  .jugador-info { flex: 1; }
+  .jugador-name { font-size: 16px; font-weight: 700; color: var(--text); }
+  .jugador-pos { display: inline-block; background: rgba(0,200,80,0.15); color: var(--green); font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 20px; margin-top: 3px; }
+  .jugador-zona { font-size: 12px; color: var(--text2); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+  .jugador-stats { display: flex; gap: 8px; margin-top: 12px; }
+  .jstat { background: var(--bg3); border-radius: 10px; padding: 6px 10px; flex: 1; text-align: center; }
+  .jstat-val { font-size: 15px; font-weight: 700; color: var(--text); }
+  .jstat-lbl { font-size: 10px; color: var(--text2); }
+  .jugador-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+  .jugador-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filter-row { display: flex; gap: 8px; padding: 8px 16px; overflow-x: auto; }
+  .filter-row::-webkit-scrollbar { display: none; }
+
+  /* BOOKING MODAL SIMULATION */
+  .booking-panel { position: absolute; bottom: 0; left: 0; right: 0; background: #1a1a24; border-radius: 28px 28px 0 0; padding: 20px; z-index: 30; transform: translateY(100%); transition: transform 0.3s ease; border-top: 1px solid var(--border); }
+  .booking-panel.open { transform: translateY(0); }
+  .panel-drag { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
+
+  /* Toast */
+  .toast { position: absolute; top: 60px; left: 16px; right: 16px; background: #1a3a2a; border: 1px solid var(--green); border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; z-index: 200; transform: translateY(-20px); opacity: 0; transition: all 0.3s; pointer-events: none; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast-icon { font-size: 20px; }
+  .toast-text { font-size: 13px; color: var(--text); font-weight: 500; }
+
+  /* Scroll padding bottom */
+  .scroll-pad { height: 20px; }
+
+  /* Transitions */
+  .screen { transition: opacity 0.2s; }
+  .screen.entering { animation: slideIn 0.3s ease; }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="phone-notch"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="status-icons">
+      <span>📶</span><span>🔋</span>
+    </div>
+  </div>
+
+  <!-- SCREENS CONTAINER -->
+  <div class="screens" id="screens">
+
+    <!-- ===== SPLASH ===== -->
+    <div class="screen active" id="splash">
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px 24px;">
+        <div class="splash-logo">
+          <div class="splash-ball">⚽</div>
+          <div class="splash-title">Fulbo<span>App</span></div>
+          <div class="splash-sub">El fútbol amateur en tus manos</div>
+        </div>
+        <button class="splash-btn" onclick="goTo('home')">Empezar</button>
+        <div class="splash-login">¿Ya tenés cuenta? <span>Iniciar sesión</span></div>
+        <div class="splash-dots" style="margin-top:32px;">
+          <div class="dot active"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        <div style="position:absolute;bottom:40px;color:#333;font-size:11px;">🇦🇷 Buenos Aires · Rosario · Córdoba · Mendoza</div>
+      </div>
+    </div>
+
+    <!-- ===== HOME ===== -->
+    <div class="screen" id="home">
+      <div class="home-header">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div class="home-greeting">Buenas tardes,</div>
+            <div class="home-name">Gonzalo <span>⚡</span></div>
+            <div class="home-location">📍 Villa Urquiza, CABA</div>
+          </div>
+          <div style="position:relative;margin-top:4px;">
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--green),#005530);display:flex;align-items:center;justify-content:center;font-size:20px;">⚽</div>
+            <div style="position:absolute;top:-4px;right:-4px;background:var(--red);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;">3</div>
+          </div>
+        </div>
+        <div class="home-stats">
+          <div class="home-stat"><div class="home-stat-val">47</div><div class="home-stat-lbl">Partidos</div></div>
+          <div class="home-stat"><div class="home-stat-val">12</div><div class="home-stat-lbl">Goles</div></div>
+          <div class="home-stat"><div class="home-stat-val">⭐ 4.8</div><div class="home-stat-lbl">Puntuación</div></div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="section-title">Acciones rápidas</div>
+      <div class="quick-actions">
+        <div class="qa-item" onclick="goTo('canchas')"><div class="qa-icon">🏟️</div><div class="qa-label">Reservar cancha</div></div>
+        <div class="qa-item" onclick="goTo('torneos')"><div class="qa-icon">🏆</div><div class="qa-label">Torneos</div></div>
+        <div class="qa-item" onclick="goTo('tienda')"><div class="qa-icon">👕</div><div class="qa-label">Tienda</div></div>
+        <div class="qa-item" onclick="goTo('jugadores')"><div class="qa-icon">🔍</div><div class="qa-label">Jugadores</div></div>
+      </div>
+
+      <!-- Próximo partido -->
+      <div class="section-title">Tu próximo partido</div>
+      <div class="prox-partido">
+        <div class="prox-label">🕐 Mañana · 20:00 hs</div>
+        <div class="prox-title">Los Pibes vs. Chicos del Barrio</div>
+        <div class="prox-meta">📍 Complejo Deportivo Norte · F5 · Césped sintético</div>
+        <div class="prox-actions">
+          <button class="btn-primary" style="flex:1;font-size:13px;padding:10px;" onclick="showToast('📍 Ruta iniciada en Google Maps')">Ver cómo llegar</button>
+          <button class="btn-outline" style="flex:1;font-size:13px;padding:10px;" onclick="showToast('📨 Convocatoria enviada al equipo')">Convocar</button>
+        </div>
+      </div>
+
+      <!-- Canchas cercanas -->
+      <div class="section-title">Canchas cercanas <span onclick="goTo('canchas')">Ver todas</span></div>
+      <div class="card" style="display:flex;align-items:center;gap:12px;" onclick="goTo('canchas')">
+        <div style="font-size:32px;">🏟️</div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;color:var(--text);">Complejo El Gol</div>
+          <div style="font-size:12px;color:var(--text2);">📍 300m · F5 · F7</div>
+        </div>
+        <div style="text-align:right;"><div style="font-size:15px;font-weight:800;color:var(--green);">$8.500</div><div style="font-size:11px;color:var(--text2);">/hora</div></div>
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:12px;" onclick="goTo('canchas')">
+        <div style="font-size:32px;">⚽</div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;color:var(--text);">Deportivo Palermo</div>
+          <div style="font-size:12px;color:var(--text2);">📍 1.2km · F5 · Iluminado</div>
+        </div>
+        <div style="text-align:right;"><div style="font-size:15px;font-weight:800;color:var(--green);">$10.000</div><div style="font-size:11px;color:var(--text2);">/hora</div></div>
+      </div>
+
+      <!-- Novedades -->
+      <div class="section-title">Novedades <span>Ver más</span></div>
+      <div class="news-card" onclick="showToast('📰 Abriendo nota...')">
+        <div class="news-img">🏆</div>
+        <div class="news-body">
+          <div class="news-cat">Torneos</div>
+          <div class="news-title">Inscripciones abiertas: Copa Amateur Buenos Aires 2026</div>
+        </div>
+      </div>
+      <div class="scroll-pad"></div>
+    </div>
+
+    <!-- ===== CANCHAS ===== -->
+    <div class="screen" id="canchas">
+      <div class="screen-header">
+        <h1>🏟️ Reservar cancha</h1>
+        <p>Buenos Aires · Cambiá tu zona</p>
+      </div>
+
+      <div class="search-bar">
+        <span>🔍</span>
+        <input type="text" placeholder="Buscar por nombre o barrio..." />
+        <span style="font-size:18px;cursor:pointer;">🎛️</span>
+      </div>
+
+      <!-- Filtros -->
+      <div style="display:flex;gap:8px;padding:0 16px 12px;overflow-x:auto;">
+        <div class="chip active">⚽ Fútbol 5</div>
+        <div class="chip">🏃 Fútbol 7</div>
+        <div class="chip">🏟️ Fútbol 11</div>
+        <div class="chip">🌙 Iluminado</div>
+        <div class="chip">🌿 Sintético</div>
+      </div>
+
+      <!-- Mapa -->
+      <div class="map-placeholder" onclick="showToast('🗺️ Abriendo mapa interactivo...')">
+        <div class="map-pins">
+          <div class="map-pin" style="top:40%;left:30%;">📍</div>
+          <div class="map-pin" style="top:25%;left:60%;animation-delay:0.5s;">📍</div>
+          <div class="map-pin" style="top:60%;left:55%;animation-delay:1s;">📍</div>
+          <div class="map-pin" style="top:45%;left:75%;animation-delay:1.5s;">📍</div>
+        </div>
+        <div style="text-align:center;z-index:1;">
+          <div style="font-size:40px;">🗺️</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px;">Tocar para ver mapa</div>
+        </div>
+      </div>
+
+      <div class="section-title">14 canchas disponibles <span>Ordenar</span></div>
+
+      <!-- Cancha 1 -->
+      <div class="cancha-card" onclick="openBooking()">
+        <div class="cancha-img">
+          🏟️
+          <div class="cancha-badge"><span class="badge">Disponible</span></div>
+        </div>
+        <div class="cancha-info">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="cancha-name">Complejo El Gol</div>
+              <div class="cancha-addr">📍 Av. Corrientes 4500 · 300m</div>
+            </div>
+            <div class="rating">⭐ 4.8 <span style="color:var(--text2);font-weight:400;">(142)</span></div>
+          </div>
+          <div class="cancha-tags">
+            <span class="tag">🌿 Césped sint.</span>
+            <span class="tag">🌙 Iluminado</span>
+            <span class="tag">🚗 Estacionam.</span>
+            <span class="tag">🚿 Vestuarios</span>
+          </div>
+          <div class="cancha-meta">
+            <div class="cancha-price">$8.500 <span>/ hora</span></div>
+            <button class="btn-primary" style="width:auto;padding:8px 18px;font-size:13px;" onclick="event.stopPropagation();openBooking()">Reservar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cancha 2 -->
+      <div class="cancha-card" onclick="openBooking()">
+        <div class="cancha-img" style="background:linear-gradient(135deg, #1a2a0a 0%, #2a3a1a 100%);">
+          ⚽
+          <div class="cancha-badge"><span class="badge badge-orange">3 lugares</span></div>
+        </div>
+        <div class="cancha-info">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="cancha-name">Deportivo Palermo Norte</div>
+              <div class="cancha-addr">📍 Honduras 5832 · 1.2km</div>
+            </div>
+            <div class="rating">⭐ 4.6 <span style="color:var(--text2);font-weight:400;">(89)</span></div>
+          </div>
+          <div class="cancha-tags">
+            <span class="tag">🌿 Natural</span>
+            <span class="tag">🌙 Iluminado</span>
+            <span class="tag">🏃 F5 · F7</span>
+          </div>
+          <div class="cancha-meta">
+            <div class="cancha-price">$10.000 <span>/ hora</span></div>
+            <button class="btn-primary" style="width:auto;padding:8px 18px;font-size:13px;" onclick="event.stopPropagation();openBooking()">Reservar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cancha 3 -->
+      <div class="cancha-card" onclick="openBooking()">
+        <div class="cancha-img" style="background:linear-gradient(135deg, #2a1a0a 0%, #3a2a1a 100%);">
+          🏆
+          <div class="cancha-badge"><span class="badge badge-red">Casi lleno</span></div>
+        </div>
+        <div class="cancha-info">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="cancha-name">Club Atlético San Martín</div>
+              <div class="cancha-addr">📍 Av. San Martín 1200 · 2.1km</div>
+            </div>
+            <div class="rating">⭐ 4.9 <span style="color:var(--text2);font-weight:400;">(271)</span></div>
+          </div>
+          <div class="cancha-tags">
+            <span class="tag">🌿 Césped sint.</span>
+            <span class="tag">🔒 Seguro</span>
+            <span class="tag">📺 Pantalla</span>
+          </div>
+          <div class="cancha-meta">
+            <div class="cancha-price">$12.000 <span>/ hora</span></div>
+            <button class="btn-primary" style="width:auto;padding:8px 18px;font-size:13px;" onclick="event.stopPropagation();openBooking()">Reservar</button>
+          </div>
+        </div>
+      </div>
+      <div class="scroll-pad"></div>
+
+      <!-- Booking Panel -->
+      <div class="booking-panel" id="bookingPanel">
+        <div class="panel-drag"></div>
+        <div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px;">Complejo El Gol · F5</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:16px;">📅 Seleccioná día y horario</div>
+        <div style="display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;">
+          <div style="background:rgba(0,200,80,0.15);border:1.5px solid var(--green);border-radius:12px;padding:8px 14px;text-align:center;cursor:pointer;white-space:nowrap;"><div style="font-size:12px;color:var(--green);">Hoy</div><div style="font-size:14px;font-weight:700;color:var(--text);">Vie 25</div></div>
+          <div style="background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;padding:8px 14px;text-align:center;cursor:pointer;white-space:nowrap;"><div style="font-size:12px;color:var(--text2);">Sáb</div><div style="font-size:14px;font-weight:700;color:var(--text);">26</div></div>
+          <div style="background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;padding:8px 14px;text-align:center;cursor:pointer;white-space:nowrap;"><div style="font-size:12px;color:var(--text2);">Dom</div><div style="font-size:14px;font-weight:700;color:var(--text);">27</div></div>
+          <div style="background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;padding:8px 14px;text-align:center;cursor:pointer;white-space:nowrap;"><div style="font-size:12px;color:var(--text2);">Lun</div><div style="font-size:14px;font-weight:700;color:var(--text);">28</div></div>
+          <div style="background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;padding:8px 14px;text-align:center;cursor:pointer;white-space:nowrap;"><div style="font-size:12px;color:var(--text2);">Mar</div><div style="font-size:14px;font-weight:700;color:var(--text);">29</div></div>
+        </div>
+        <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px;">Horarios disponibles</div>
+        <div class="horarios-grid">
+          <div class="horario-slot ocupado"><div class="horario-time">17:00</div><div class="horario-dur">Ocupado</div></div>
+          <div class="horario-slot sel" onclick="selectSlot(this)"><div class="horario-time">18:00</div><div class="horario-dur">1 hora</div></div>
+          <div class="horario-slot" onclick="selectSlot(this)"><div class="horario-time">19:00</div><div class="horario-dur">1 hora</div></div>
+          <div class="horario-slot" onclick="selectSlot(this)"><div class="horario-time">20:00</div><div class="horario-dur">1 hora</div></div>
+          <div class="horario-slot ocupado"><div class="horario-time">21:00</div><div class="horario-dur">Ocupado</div></div>
+          <div class="horario-slot" onclick="selectSlot(this)"><div class="horario-time">22:00</div><div class="horario-dur">1 hora</div></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 12px;padding-top:12px;border-top:1px solid var(--border);">
+          <div><div style="font-size:12px;color:var(--text2);">Total a pagar</div><div style="font-size:22px;font-weight:800;color:var(--green);">$8.500</div></div>
+          <div style="display:flex;gap:8px;">
+            <div style="font-size:20px;cursor:pointer;">💳</div>
+            <div style="font-size:20px;cursor:pointer;">💰</div>
+            <div style="font-size:20px;cursor:pointer;">📱</div>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="confirmBooking()">✅ Confirmar reserva</button>
+        <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--text2);cursor:pointer;" onclick="closeBooking()">Cancelar</div>
+      </div>
+    </div>
+
+    <!-- ===== TORNEOS ===== -->
+    <div class="screen" id="torneos">
+      <div class="screen-header">
+        <h1>🏆 Torneos</h1>
+        <p>Organizá o participá en torneos amateur</p>
+      </div>
+
+      <div style="display:flex;gap:8px;padding:12px 16px 4px;overflow-x:auto;">
+        <div class="chip active">🔥 Activos</div>
+        <div class="chip">📅 Próximos</div>
+        <div class="chip">✅ Finalizados</div>
+        <div class="chip">⚽ Mi torneo</div>
+      </div>
+
+      <div style="padding:12px 16px 4px;">
+        <button class="btn-primary" onclick="showToast('🏆 Creando nuevo torneo...')">+ Crear torneo</button>
+      </div>
+
+      <!-- Torneo 1 -->
+      <div class="section-title">En curso</div>
+      <div class="torneo-card">
+        <div class="torneo-header">
+          <div>
+            <div style="font-size:20px;margin-bottom:4px;">🏆</div>
+            <div class="torneo-name">Copa Amateur CABA 2026</div>
+            <div class="torneo-org">Organiza: FulboApp · 14 equipos</div>
+          </div>
+          <span class="badge badge-orange">Activo</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:65%;"></div></div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px;">Fase de grupos · Fecha 4 de 6</div>
+        <div class="torneo-meta">
+          <div class="torneo-meta-item"><div class="torneo-meta-label">📅 Inicio</div><div class="torneo-meta-val">1 Abr 2026</div></div>
+          <div class="torneo-meta-item"><div class="torneo-meta-label">💰 Premio</div><div class="torneo-meta-val">$150.000</div></div>
+          <div class="torneo-meta-item"><div class="torneo-meta-label">⚽ Formato</div><div class="torneo-meta-val">Fútbol 5</div></div>
+          <div class="torneo-meta-item"><div class="torneo-meta-label">📍 Sede</div><div class="torneo-meta-val">CABA</div></div>
+        </div>
+        <!-- Fixture -->
+        <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;">ÚLTIMOS RESULTADOS</div>
+          <div class="fixture-row" style="padding:8px 0;">
+            <div class="fixture-team">
+              <div class="team-badge">🦁</div>
+              <div class="fixture-team-name">Los Pibes</div>
+            </div>
+            <div class="fixture-score" style="color:var(--green);">3 – 2</div>
+            <div class="fixture-team right">
+              <div class="fixture-team-name">El Barrio FC</div>
+              <div class="team-badge" style="background:linear-gradient(135deg,#1a1a4a,#2a2a6a);">🐯</div>
+            </div>
+          </div>
+          <div class="fixture-row" style="padding:8px 0;border-bottom:none;">
+            <div class="fixture-team">
+              <div class="team-badge" style="background:linear-gradient(135deg,#3a1a1a,#5a2a2a);">🦅</div>
+              <div class="fixture-team-name">Fénix FC</div>
+            </div>
+            <div class="fixture-score">1 – 1</div>
+            <div class="fixture-team right">
+              <div class="fixture-team-name">Amigos RC</div>
+              <div class="team-badge" style="background:linear-gradient(135deg,#1a3a1a,#2a5a2a);">🐆</div>
+            </div>
+          </div>
+        </div>
+        <!-- Tabla -->
+        <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;">TABLA DE POSICIONES</div>
+          <div style="display:flex;padding:0 0 6px;font-size:10px;color:var(--text2);">
+            <div style="width:24px;">#</div>
+            <div style="flex:1;margin-left:8px;">Equipo</div>
+            <div style="width:20px;text-align:center;">PJ</div>
+            <div style="width:20px;text-align:center;">GF</div>
+            <div style="width:24px;text-align:center;font-weight:700;color:var(--text);">PTS</div>
+          </div>
+          <div class="tabla-row"><div class="tabla-pos top3">1</div><div class="tabla-name">🦁 Los Pibes</div><div class="tabla-stats"><div class="tabla-stat">4</div><div class="tabla-stat">14</div><div class="tabla-stat pts">11</div></div></div>
+          <div class="tabla-row"><div class="tabla-pos top3">2</div><div class="tabla-name">🐆 Amigos RC</div><div class="tabla-stats"><div class="tabla-stat">4</div><div class="tabla-stat">10</div><div class="tabla-stat pts">9</div></div></div>
+          <div class="tabla-row"><div class="tabla-pos top3">3</div><div class="tabla-name">🦅 Fénix FC</div><div class="tabla-stats"><div class="tabla-stat">4</div><div class="tabla-stat">8</div><div class="tabla-stat pts">7</div></div></div>
+          <div class="tabla-row"><div class="tabla-pos">4</div><div class="tabla-name">🐯 El Barrio FC</div><div class="tabla-stats"><div class="tabla-stat">4</div><div class="tabla-stat">7</div><div class="tabla-stat pts">5</div></div></div>
+        </div>
+        <button class="btn-primary" style="margin-top:14px;" onclick="showToast('🏆 Abriendo torneo completo...')">Ver torneo completo</button>
+      </div>
+
+      <!-- Torneo 2 -->
+      <div class="section-title">Próximos</div>
+      <div class="torneo-card" onclick="showToast('📅 Inscripción abierta!')">
+        <div class="torneo-header">
+          <div>
+            <div style="font-size:20px;margin-bottom:4px;">⚽</div>
+            <div class="torneo-name">Liga Nocturna Palermo</div>
+            <div class="torneo-org">Deportivo Palermo Norte · 8 equipos</div>
+          </div>
+          <span class="badge badge-blue">Inscripción</span>
+        </div>
+        <div class="torneo-meta" style="margin-top:10px;">
+          <div class="torneo-meta-item"><div class="torneo-meta-label">📅 Inicio</div><div class="torneo-meta-val">10 May 2026</div></div>
+          <div class="torneo-meta-item"><div class="torneo-meta-label">💰 Inscripción</div><div class="torneo-meta-val">$5.000</div></div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:75%;background:var(--orange);"></div></div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:10px;">6 de 8 equipos inscriptos</div>
+        <button class="btn-primary" onclick="event.stopPropagation();showToast('✅ Inscripción realizada!')">Inscribir mi equipo</button>
+      </div>
+      <div class="scroll-pad"></div>
+    </div>
+
+    <!-- ===== TIENDA ===== -->
+    <div class="screen" id="tienda">
+      <div class="screen-header">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div><h1>👕 Tienda</h1><p>Indumentaria y accesorios</p></div>
+          <div style="position:relative;cursor:pointer;" onclick="showToast('🛒 Carrito: 2 productos, $24.500')">
+            <div style="background:var(--bg3);border-radius:12px;padding:8px 12px;font-size:20px;">🛒</div>
+            <div class="cart-count" style="position:absolute;top:-4px;right:-4px;">2</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <span>🔍</span>
+        <input type="text" placeholder="Buscar productos..." />
+        <span style="font-size:18px;">🎛️</span>
+      </div>
+
+      <!-- Banner oferta -->
+      <div style="background:linear-gradient(135deg,#1a2a0a,#0a1a2a);border-radius:20px;margin:0 16px 12px;padding:16px;border:1px solid rgba(0,200,80,0.2);display:flex;align-items:center;gap:12px;">
+        <div style="font-size:36px;">🔥</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);">Temporada 2026</div>
+          <div style="font-size:12px;color:var(--text2);">Hasta 40% off en camisetas</div>
+        </div>
+        <button class="btn-primary" style="width:auto;padding:8px 14px;font-size:12px;margin-left:auto;">Ver</button>
+      </div>
+
+      <!-- Categorías -->
+      <div class="categories-scroll">
+        <div class="cat-item active">⚽ Todos</div>
+        <div class="cat-item">👕 Camisetas</div>
+        <div class="cat-item">👟 Botines</div>
+        <div class="cat-item">🩳 Shorts</div>
+        <div class="cat-item">🧤 Guantes</div>
+        <div class="cat-item">⚽ Pelotas</div>
+        <div class="cat-item">🎒 Bolsos</div>
+      </div>
+
+      <div class="section-title">Más vendidos</div>
+      <div class="products-grid">
+        <div class="product-card" onclick="showToast('👕 Camiseta Argentina agregada al carrito')">
+          <div class="product-img">
+            🇦🇷
+            <div class="product-fav">❤️</div>
+          </div>
+          <div class="product-info">
+            <div class="product-brand">Adidas</div>
+            <div class="product-name">Camiseta Argentina 2026</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">
+              <div><span class="product-price">$18.990</span></div>
+              <button class="product-add">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="product-card" onclick="showToast('👟 Botines Nike agregados al carrito')">
+          <div class="product-img" style="background:linear-gradient(135deg,#1a1a3a,#2a1a3a);">
+            👟
+            <div class="product-fav">🤍</div>
+          </div>
+          <div class="product-info">
+            <div class="product-brand">Nike</div>
+            <div class="product-name">Botines Tiempo Legend 10</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">
+              <div><span class="product-price">$54.990</span><span class="product-price-old">$72.000</span></div>
+              <button class="product-add">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="product-card" onclick="showToast('⚽ Pelota agregada al carrito')">
+          <div class="product-img" style="background:linear-gradient(135deg,#1a3a1a,#2a3a0a);">
+            ⚽
+            <div class="product-fav">🤍</div>
+          </div>
+          <div class="product-info">
+            <div class="product-brand">Puma</div>
+            <div class="product-name">Pelota Orbita F5 Pro</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">
+              <div><span class="product-price">$22.500</span></div>
+              <button class="product-add">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="product-card" onclick="showToast('🧤 Guantes agregados al carrito')">
+          <div class="product-img" style="background:linear-gradient(135deg,#3a1a1a,#2a1a2a);">
+            🧤
+            <div class="product-fav">🤍</div>
+          </div>
+          <div class="product-info">
+            <div class="product-brand">Adidas</div>
+            <div class="product-name">Guantes Predator Match</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">
+              <div><span class="product-price">$14.900</span><span class="product-price-old">$19.000</span></div>
+              <button class="product-add">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="product-card" onclick="showToast('🩳 Short agregado al carrito')">
+          <div class="product-img" style="background:linear-gradient(135deg,#1a2a3a,#0a1a2a);">
+            🩳
+            <div class="product-fav">🤍</div>
+          </div>
+          <div class="product-info">
+            <div class="product-brand">Nike</div>
+            <div class="product-name">Short Dri-FIT Strike</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">
+              <div><span class="product-price">$8.990</span></div>
+              <button class="product-add">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="product-card" onclick="showToast('🎒 Bolso agregado al carrito')">
+          <div class="product-img" style="background:linear-gradient(135deg,#2a2a1a,#3a3a0a);">
+            🎒
+            <div class="product-fav">🤍</div>
+          </div>
+          <div class="product-info">
+            <div class="product-brand">Umbro</div>
+            <div class="product-name">Bolso deporte Pro 35L</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">
+              <div><span class="product-price">$11.500</span></div>
+              <button class="product-add">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="scroll-pad"></div>
+    </div>
+
+    <!-- ===== COMUNIDAD ===== -->
+    <div class="screen" id="comunidad">
+      <div class="screen-header">
+        <h1>👥 Comunidad</h1>
+        <p>Equipos · Mensajes · Red futbolera</p>
+      </div>
+
+      <div class="comm-tabs">
+        <div class="comm-tab active" onclick="showCommTab('equipos',this)">Equipos</div>
+        <div class="comm-tab" onclick="showCommTab('mensajes',this)">Mensajes</div>
+        <div class="comm-tab" onclick="showCommTab('actividad',this)">Actividad</div>
+      </div>
+
+      <!-- Equipos tab -->
+      <div id="tab-equipos">
+        <div style="padding:0 16px 8px;">
+          <button class="btn-primary" onclick="showToast('⚽ Creando nuevo equipo...')">+ Crear equipo</button>
+        </div>
+
+        <div class="section-title">Mi equipo</div>
+        <div class="equipo-card" style="border-color:rgba(0,200,80,0.3);">
+          <div class="equipo-header">
+            <div class="equipo-badge">🦁</div>
+            <div>
+              <div class="equipo-name">Los Pibes</div>
+              <div class="equipo-sub">Capitán: Vos · Villa Urquiza</div>
+            </div>
+            <div style="margin-left:auto;"><span class="badge">F5</span></div>
+          </div>
+          <div class="equipo-stats">
+            <div class="equipo-stat"><div class="equipo-stat-val">12</div><div class="equipo-stat-lbl">Partidos</div></div>
+            <div class="equipo-stat"><div class="equipo-stat-val">8</div><div class="equipo-stat-lbl">Victorias</div></div>
+            <div class="equipo-stat"><div class="equipo-stat-val">3</div><div class="equipo-stat-lbl">Empates</div></div>
+            <div class="equipo-stat"><div class="equipo-stat-val">1</div><div class="equipo-stat-lbl">Derrotas</div></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+            <div class="equipo-members">
+              <div class="member-avatar">G</div>
+              <div class="member-avatar">M</div>
+              <div class="member-avatar">F</div>
+              <div class="member-avatar">L</div>
+              <div class="member-avatar">R</div>
+              <div class="member-avatar member-more">+3</div>
+            </div>
+            <button class="btn-outline" style="padding:6px 14px;font-size:12px;" onclick="showToast('👥 Abriendo gestión del equipo...')">Gestionar</button>
+          </div>
+        </div>
+
+        <div class="section-title">Equipos cercanos <span>Ver todos</span></div>
+        <div class="equipo-card" onclick="showToast('👥 Viendo perfil de Fénix FC...')">
+          <div class="equipo-header">
+            <div class="equipo-badge" style="background:linear-gradient(135deg,#3a1a1a,#5a2a2a);">🦅</div>
+            <div>
+              <div class="equipo-name">Fénix FC</div>
+              <div class="equipo-sub">8 jugadores · Palermo</div>
+            </div>
+            <button class="btn-outline" style="padding:6px 14px;font-size:12px;margin-left:auto;" onclick="event.stopPropagation();showToast('📨 Desafío enviado a Fénix FC!')">Desafiar</button>
+          </div>
+          <div class="equipo-stats">
+            <div class="equipo-stat"><div class="equipo-stat-val">9</div><div class="equipo-stat-lbl">PJ</div></div>
+            <div class="equipo-stat"><div class="equipo-stat-val">6</div><div class="equipo-stat-lbl">V</div></div>
+            <div class="equipo-stat"><div class="equipo-stat-val">⭐ 4.7</div><div class="equipo-stat-lbl">Rating</div></div>
+          </div>
+        </div>
+        <div class="equipo-card" onclick="showToast('👥 Viendo perfil de Amigos RC...')">
+          <div class="equipo-header">
+            <div class="equipo-badge" style="background:linear-gradient(135deg,#1a3a1a,#2a5a2a);">🐆</div>
+            <div>
+              <div class="equipo-name">Amigos RC</div>
+              <div class="equipo-sub">10 jugadores · Belgrano</div>
+            </div>
+            <button class="btn-outline" style="padding:6px 14px;font-size:12px;margin-left:auto;" onclick="event.stopPropagation();showToast('📨 Desafío enviado a Amigos RC!')">Desafiar</button>
+          </div>
+          <div class="equipo-stats">
+            <div class="equipo-stat"><div class="equipo-stat-val">11</div><div class="equipo-stat-lbl">PJ</div></div>
+            <div class="equipo-stat"><div class="equipo-stat-val">7</div><div class="equipo-stat-lbl">V</div></div>
+            <div class="equipo-stat"><div class="equipo-stat-val">⭐ 4.9</div><div class="equipo-stat-lbl">Rating</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensajes tab -->
+      <div id="tab-mensajes" style="display:none;">
+        <div class="chat-list">
+          <div class="chat-item" onclick="showToast('💬 Abriendo chat Los Pibes...')">
+            <div class="chat-ava">🦁<div class="chat-online"></div></div>
+            <div style="flex:1;">
+              <div class="chat-name">Los Pibes 🦁</div>
+              <div class="chat-preview">Marcos: ¿Confirmados para mañana?</div>
+            </div>
+            <div class="chat-meta"><div class="chat-time">20:14</div><div class="chat-unread">4</div></div>
+          </div>
+          <div class="chat-item" onclick="showToast('💬 Abriendo chat con Franco...')">
+            <div class="chat-ava">⚽</div>
+            <div style="flex:1;">
+              <div class="chat-name">Franco Rodríguez</div>
+              <div class="chat-preview">Dale, el sábado a las 18 joya!</div>
+            </div>
+            <div class="chat-meta"><div class="chat-time">18:32</div></div>
+          </div>
+          <div class="chat-item" onclick="showToast('💬 Abriendo chat Fénix FC...')">
+            <div class="chat-ava" style="background:linear-gradient(135deg,#3a1a1a,#5a2a2a);">🦅<div class="chat-online"></div></div>
+            <div style="flex:1;">
+              <div class="chat-name">Fénix FC</div>
+              <div class="chat-preview">Desafío: ¿El próximo finde?</div>
+            </div>
+            <div class="chat-meta"><div class="chat-time">Ayer</div><div class="chat-unread">2</div></div>
+          </div>
+          <div class="chat-item" onclick="showToast('💬 Abriendo soporte...')">
+            <div class="chat-ava" style="background:linear-gradient(135deg,#0d2b1a,#0a1628);">⚽</div>
+            <div style="flex:1;">
+              <div class="chat-name">FulboApp Soporte</div>
+              <div class="chat-preview">Tu reserva fue confirmada ✅</div>
+            </div>
+            <div class="chat-meta"><div class="chat-time">Mar</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actividad tab -->
+      <div id="tab-actividad" style="display:none;padding:16px;">
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="background:var(--card);border-radius:16px;padding:14px;border:1px solid var(--border);">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="font-size:24px;">⚽</div>
+              <div><div style="font-size:13px;font-weight:600;color:var(--text);">Gol de Marcos · Los Pibes</div><div style="font-size:11px;color:var(--text2);">hace 2 horas</div></div>
+            </div>
+          </div>
+          <div style="background:var(--card);border-radius:16px;padding:14px;border:1px solid var(--border);">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="font-size:24px;">🏆</div>
+              <div><div style="font-size:13px;font-weight:600;color:var(--text);">Los Pibes ganó 3-2 vs El Barrio FC</div><div style="font-size:11px;color:var(--text2);">ayer · Copa Amateur CABA</div></div>
+            </div>
+          </div>
+          <div style="background:var(--card);border-radius:16px;padding:14px;border:1px solid var(--border);">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="font-size:24px;">👥</div>
+              <div><div style="font-size:13px;font-weight:600;color:var(--text);">Lucas se unió a Los Pibes</div><div style="font-size:11px;color:var(--text2);">hace 3 días</div></div>
+            </div>
+          </div>
+          <div style="background:var(--card);border-radius:16px;padding:14px;border:1px solid var(--border);">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="font-size:24px;">🏟️</div>
+              <div><div style="font-size:13px;font-weight:600;color:var(--text);">Cancha reservada · El Gol</div><div style="font-size:11px;color:var(--text2);">Vie 25 Abr · 20:00 hs</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="scroll-pad"></div>
+    </div>
+
+    <!-- ===== JUGADORES DISPONIBLES ===== -->
+    <div class="screen" id="jugadores">
+      <div class="screen-header">
+        <h1>🔍 Jugadores</h1>
+        <p>Encontrá o publicá tu disponibilidad</p>
+      </div>
+
+      <div class="search-bar">
+        <span>🔍</span>
+        <input type="text" placeholder="Buscar por posición, zona..." />
+        <span style="font-size:18px;">🎛️</span>
+      </div>
+
+      <!-- Filtros posición -->
+      <div class="filter-row">
+        <div class="chip active">👟 Todos</div>
+        <div class="chip">🧤 Arquero</div>
+        <div class="chip">🛡️ Defensor</div>
+        <div class="chip">⚡ Mediocampista</div>
+        <div class="chip">⚽ Delantero</div>
+      </div>
+
+      <!-- Botón publicar -->
+      <div style="padding:8px 16px 4px;">
+        <button class="btn-primary" onclick="showToast('📢 Publicando tu disponibilidad...')">📢 Publicar mi disponibilidad</button>
+      </div>
+
+      <div class="section-title">Jugadores cerca tuyo <span>Filtrar</span></div>
+
+      <!-- Jugador 1 -->
+      <div class="jugador-card">
+        <div class="jugador-header">
+          <div class="jugador-avatar">⚽</div>
+          <div class="jugador-info">
+            <div class="jugador-name">Matías Guerrero</div>
+            <div class="jugador-pos">⚽ Delantero</div>
+            <div class="jugador-zona">📍 Villa Urquiza · 400m</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="rating">⭐ 4.9</div>
+            <div style="font-size:10px;color:var(--green);margin-top:4px;">● Disponible</div>
+          </div>
+        </div>
+        <div class="jugador-stats">
+          <div class="jstat"><div class="jstat-val">94</div><div class="jstat-lbl">Partidos</div></div>
+          <div class="jstat"><div class="jstat-val">47</div><div class="jstat-lbl">Goles</div></div>
+          <div class="jstat"><div class="jstat-val">23</div><div class="jstat-lbl">Asist.</div></div>
+          <div class="jstat"><div class="jstat-val">F5</div><div class="jstat-lbl">Formato</div></div>
+        </div>
+        <div class="jugador-bottom">
+          <div class="jugador-tags">
+            <span class="tag">Zurdo</span>
+            <span class="tag">Rápido</span>
+            <span class="tag">Buen pase</span>
+          </div>
+          <button class="btn-primary" style="width:auto;padding:8px 16px;font-size:13px;" onclick="showToast('📨 Invitación enviada a Matías!')">Invitar</button>
+        </div>
+      </div>
+
+      <!-- Jugador 2 -->
+      <div class="jugador-card">
+        <div class="jugador-header">
+          <div class="jugador-avatar" style="background:linear-gradient(135deg,#1a1a4a,#2a2a6a);">🧤</div>
+          <div class="jugador-info">
+            <div class="jugador-name">Rodrigo Sánchez</div>
+            <div class="jugador-pos" style="background:rgba(37,99,235,0.15);color:var(--blue);">🧤 Arquero</div>
+            <div class="jugador-zona">📍 Palermo · 1.3km</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="rating">⭐ 4.7</div>
+            <div style="font-size:10px;color:var(--green);margin-top:4px;">● Disponible</div>
+          </div>
+        </div>
+        <div class="jugador-stats">
+          <div class="jstat"><div class="jstat-val">58</div><div class="jstat-lbl">Partidos</div></div>
+          <div class="jstat"><div class="jstat-val">12</div><div class="jstat-lbl">Vallas 0</div></div>
+          <div class="jstat"><div class="jstat-val">4.8</div><div class="jstat-lbl">Puntaje</div></div>
+          <div class="jstat"><div class="jstat-val">F5/F7</div><div class="jstat-lbl">Formato</div></div>
+        </div>
+        <div class="jugador-bottom">
+          <div class="jugador-tags">
+            <span class="tag">Reflexivos</span>
+            <span class="tag">Penales</span>
+          </div>
+          <button class="btn-primary" style="width:auto;padding:8px 16px;font-size:13px;" onclick="showToast('📨 Invitación enviada a Rodrigo!')">Invitar</button>
+        </div>
+      </div>
+
+      <!-- Jugador 3 -->
+      <div class="jugador-card">
+        <div class="jugador-header">
+          <div class="jugador-avatar" style="background:linear-gradient(135deg,#2a1a0a,#4a3a1a);">⚡</div>
+          <div class="jugador-info">
+            <div class="jugador-name">Luciana Pérez</div>
+            <div class="jugador-pos" style="background:rgba(249,115,22,0.15);color:var(--orange);">⚡ Mediocampista</div>
+            <div class="jugador-zona">📍 Belgrano · 2.1km</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="rating">⭐ 5.0</div>
+            <div style="font-size:10px;color:var(--orange);margin-top:4px;">◎ Hoy disponible</div>
+          </div>
+        </div>
+        <div class="jugador-stats">
+          <div class="jstat"><div class="jstat-val">71</div><div class="jstat-lbl">Partidos</div></div>
+          <div class="jstat"><div class="jstat-val">18</div><div class="jstat-lbl">Goles</div></div>
+          <div class="jstat"><div class="jstat-val">41</div><div class="jstat-lbl">Asist.</div></div>
+          <div class="jstat"><div class="jstat-val">F5</div><div class="jstat-lbl">Formato</div></div>
+        </div>
+        <div class="jugador-bottom">
+          <div class="jugador-tags">
+            <span class="tag">Técnica</span>
+            <span class="tag">Visión</span>
+            <span class="tag">Liderazgo</span>
+          </div>
+          <button class="btn-primary" style="width:auto;padding:8px 16px;font-size:13px;" onclick="showToast('📨 Invitación enviada a Luciana!')">Invitar</button>
+        </div>
+      </div>
+
+      <!-- Jugador 4 -->
+      <div class="jugador-card">
+        <div class="jugador-header">
+          <div class="jugador-avatar" style="background:linear-gradient(135deg,#1a3a1a,#2a5a2a);">🛡️</div>
+          <div class="jugador-info">
+            <div class="jugador-name">Nicolás Torres</div>
+            <div class="jugador-pos" style="background:rgba(239,68,68,0.15);color:var(--red);">🛡️ Defensor</div>
+            <div class="jugador-zona">📍 Núñez · 3.4km</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="rating">⭐ 4.6</div>
+            <div style="font-size:10px;color:var(--text2);margin-top:4px;">● Fines de semana</div>
+          </div>
+        </div>
+        <div class="jugador-stats">
+          <div class="jstat"><div class="jstat-val">83</div><div class="jstat-lbl">Partidos</div></div>
+          <div class="jstat"><div class="jstat-val">5</div><div class="jstat-lbl">Goles</div></div>
+          <div class="jstat"><div class="jstat-val">14</div><div class="jstat-lbl">Asist.</div></div>
+          <div class="jstat"><div class="jstat-val">F7/11</div><div class="jstat-lbl">Formato</div></div>
+        </div>
+        <div class="jugador-bottom">
+          <div class="jugador-tags">
+            <span class="tag">Físico</span>
+            <span class="tag">Marcador</span>
+          </div>
+          <button class="btn-primary" style="width:auto;padding:8px 16px;font-size:13px;" onclick="showToast('📨 Invitación enviada a Nicolás!')">Invitar</button>
+        </div>
+      </div>
+
+      <div class="scroll-pad"></div>
+    </div>
+
+  </div><!-- /screens -->
+
+  <!-- BOTTOM NAV (hidden on splash) -->
+  <div class="bottom-nav" id="bottomNav" style="display:none;">
+    <div class="nav-item active" id="nav-home" onclick="goTo('home')">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Inicio</span>
+    </div>
+    <div class="nav-item" id="nav-canchas" onclick="goTo('canchas')">
+      <span class="nav-icon">🏟️</span>
+      <span class="nav-label">Canchas</span>
+    </div>
+    <div class="nav-item" id="nav-torneos" onclick="goTo('torneos')">
+      <span class="nav-icon">🏆</span>
+      <span class="nav-label">Torneos</span>
+    </div>
+    <div class="nav-item" id="nav-tienda" onclick="goTo('tienda')">
+      <span class="nav-icon">👕</span>
+      <span class="nav-label">Tienda</span>
+    </div>
+    <div class="nav-item" id="nav-comunidad" onclick="goTo('comunidad')">
+      <span class="nav-icon">👥</span>
+      <span class="nav-label">Comunidad</span>
+    </div>
+    <div class="nav-item" id="nav-jugadores" onclick="goTo('jugadores')">
+      <span class="nav-icon">🔍</span>
+      <span class="nav-label">Jugadores</span>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">
+    <span class="toast-icon">✅</span>
+    <span class="toast-text" id="toastText"></span>
+  </div>
+
+</div><!-- /phone -->
+
+<script>
+  const screens = ['home','canchas','torneos','tienda','comunidad','jugadores'];
+  let currentScreen = 'splash';
+  let toastTimer = null;
+
+  function goTo(id) {
+    // Hide all
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    // Show target
+    const target = document.getElementById(id);
+    target.classList.add('active');
+    target.classList.add('entering');
+    setTimeout(() => target.classList.remove('entering'), 300);
+    currentScreen = id;
+
+    // Nav
+    const nav = document.getElementById('bottomNav');
+    if (id === 'splash') {
+      nav.style.display = 'none';
+    } else {
+      nav.style.display = 'flex';
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      const navEl = document.getElementById('nav-' + id);
+      if (navEl) navEl.classList.add('active');
+    }
+
+    // Close booking panel if switching away
+    closeBooking();
+  }
+
+  function openBooking() {
+    document.getElementById('bookingPanel').classList.add('open');
+  }
+
+  function closeBooking() {
+    const panel = document.getElementById('bookingPanel');
+    if (panel) panel.classList.remove('open');
+  }
+
+  function confirmBooking() {
+    closeBooking();
+    showToast('✅ ¡Reserva confirmada! Se envió el comprobante a tu email.');
+  }
+
+  function selectSlot(el) {
+    document.querySelectorAll('.horario-slot').forEach(s => s.classList.remove('sel'));
+    if (!el.classList.contains('ocupado')) el.classList.add('sel');
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    const text = document.getElementById('toastText');
+    const icon = toast.querySelector('.toast-icon');
+    text.textContent = msg.slice(2);
+    icon.textContent = msg.slice(0,2);
+    toast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
+  }
+
+  function showCommTab(tab, el) {
+    ['equipos','mensajes','actividad'].forEach(t => {
+      document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
+    });
+    document.querySelectorAll('.comm-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // Category chips interaction
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', function() {
+      const parent = this.parentElement;
+      // Only toggle in filter groups (not booking slots)
+      parent.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // Cat items in tienda
+  document.querySelectorAll('.cat-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.cat-item').forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // Update clock
+  function updateClock() {
+    const now = new Date();
+    const h = now.getHours().toString().padStart(2,'0');
+    const m = now.getMinutes().toString().padStart(2,'0');
+    document.querySelector('.status-bar .time').textContent = h + ':' + m;
+  }
+  updateClock();
+  setInterval(updateClock, 10000);
+</script>
+</body>
+</html>

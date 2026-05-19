@@ -1,0 +1,70 @@
+RESUMEN DE SESIÓN — Proyecto FulboApp
+======================================
+Fecha: 25 de abril de 2026
+Duración: Sesión completa de trabajo
+
+────────────────────────────────────────
+¿QUÉ SE HIZO HOY?
+────────────────────────────────────────
+
+1. PROTOTIPO VISUAL (fulboapp.html)
+   - Se creó desde cero un prototipo interactivo tipo app móvil en HTML.
+   - Incluye 6 pantallas de usuario: Splash/Onboarding, Home, Canchas,
+     Torneos, Tienda, Comunidad y Jugadores disponibles.
+   - Mercado objetivo: Argentina. Moneda: pesos argentinos.
+   - Se guardó la versión original como fulboapp_v1.html (backup intacto).
+
+2. MODO ADMINISTRADOR DE CANCHAS (integrado en fulboapp.html)
+   - Se agregó acceso desde el splash con el botón "Soy dueño / admin de cancha".
+   - 5 pantallas admin con nav propio:
+     · Dashboard: KPIs del día, alertas, próximas reservas, gráfico semanal.
+     · Agenda: Timeline visual por cancha y día (confirmada / pendiente /
+       bloqueada / libre).
+     · Reservas: Gestión con acciones confirmar / rechazar / llamar.
+     · Mi Cancha: Configuración de precios, servicios, horarios y notificaciones.
+     · Ingresos: Reportes, gráfico de barras, desglose por método de pago.
+
+3. ROADMAP DE LANZAMIENTO (roadmap.html)
+   - Documento visual interactivo con 4 vistas: Fases, Gantt, Métricas y Riesgos.
+   - Horizonte: lanzamiento el 11 de junio de 2026 (inicio del Mundial FIFA).
+   - 6 fases definidas: Diseño → Desarrollo MVP → QA/Lanzamiento →
+     Crecimiento → Tienda & Comunidad → Expansión regional.
+   - MVP enfocado en alquiler de canchas. Torneos, Jugadores y Tienda en V2/V3.
+   - Incluye funnel de conversión, modelo de monetización y mapa de riesgos.
+
+4. CARPETA DE SUGERENCIAS (sugerencias/)
+   - Se creó la carpeta para acumular ideas en archivos de texto.
+   - sugerencia_01.txt: "Primer turno gratis al registrarte."
+
+5. IMPLEMENTACIÓN: PRIMER TURNO GRATIS
+   - Se implementó la promo en 3 puntos del flujo del usuario:
+     · Splash: banner con propuesta de valor antes del botón de registro.
+     · Home: card prominente que lleva a la pantalla de canchas.
+     · Panel de reserva: descuento aplicado visualmente (-$8.500), total $0
+       con precio original tachado, botón "Confirmar turno gratis".
+
+6. REGLAS GENERALES DE TRABAJO
+   - Se creó el archivo Projects/reglas_generales.txt con la Regla 1:
+     "Al terminar cada sesión, generar un resumen."
+
+────────────────────────────────────────
+ARCHIVOS DEL PROYECTO
+────────────────────────────────────────
+futbol/
+├── fulboapp.html         ← Prototipo principal (versión activa)
+├── fulboapp_v1.html      ← Backup versión inicial
+├── roadmap.html          ← Roadmap de lanzamiento interactivo
+├── sugerencias/
+│   └── sugerencia_01.txt
+└── sesion_25abril2026.txt ← Este archivo
+
+────────────────────────────────────────
+PENDIENTES / PRÓXIMOS PASOS
+────────────────────────────────────────
+- Revisar el roadmap con detenimiento (quedó pendiente del usuario).
+- Procesar nuevas sugerencias que se vayan dejando en la carpeta.
+- Definir stack tecnológico real (React Native / Flutter).
+- Arrancar el onboarding comercial de canchas piloto cuanto antes
+  (el roadmap lo marca como acción inmediata).
+- Profundizar la funcionalidad de "jugadores disponibles"
+  (el usuario mencionó que tenía más para explicar sobre este módulo).
