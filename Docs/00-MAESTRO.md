@@ -41,7 +41,7 @@ El proyecto replica un patrón conocido (booking de canchas) en un mercado donde
 | Pagos | MercadoPago PHP SDK v3 (Checkout Pro) | Sandbox primero, prod al deploy |
 | Emails | `wp_mail()` + SMTP plugin (SendGrid o Gmail) | Para confirmaciones y notificaciones |
 | Tareas programadas | WP Cron | Para recordatorios automáticos (Fase 2) |
-| Campos custom | Advanced Custom Fields (ACF Pro) | Licencia a cargo de Manu |
+| Campos custom | Meta fields nativos de WP (`add_meta_box` + `*_post_meta`) dentro del plugin `falta-uno` | Sin ACF Pro ni ACF free — decisión §22.4 |
 | Hosting (prod, a definir) | SiteGround / Cloudways / Hostinger | PHP 8 + MySQL 8 + SSL |
 
 ### §2.2 Custom Post Types
@@ -50,7 +50,7 @@ Se registran desde `wp-content/plugins/falta-uno/includes/class-cpt.php` usando 
 
 #### CPT `canchas`
 
-El título del post es el nombre de la cancha. Campos ACF:
+El título del post es el nombre de la cancha. Meta fields nativos (registrados por el plugin con `add_meta_box`, meta keys con prefijo `fu_`):
 
 | Campo | Tipo | Descripción |
 |---|---|---|
@@ -66,6 +66,8 @@ El título del post es el nombre de la cancha. Campos ACF:
 | `cancha_activa` | True/False | 1 = visible, 0 = pendiente de aprobación |
 
 #### CPT `reservas`
+
+Meta fields nativos (mismas convenciones que `canchas`):
 
 | Campo | Tipo | Descripción |
 |---|---|---|

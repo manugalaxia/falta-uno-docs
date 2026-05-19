@@ -18,7 +18,7 @@
 |---|---|---|---|---|
 | 1 | 13 May | Setup hosting + WordPress + SSL + Git repo + ACF Pro | 🟡 En curso | WP local OK. Git, hosting, SSL y ACF Pro pendientes. Ver detalle abajo. |
 | 2 | 14 May | Bootstrap del plugin: activación, autoloader, CPTs canchas y reservas | ⚪ Pendiente | Esperando cerrar Día 1 |
-| 3 | 15 May | Roles custom + todos los ACF fields para canchas y reservas | ⚪ Pendiente | |
+| 3 | 15 May | Roles custom + meta boxes nativos para canchas y reservas (helper `FU_Meta`) | ⚪ Pendiente | Cambió scope — sin ACF, ver `§22.4` |
 | 4 | 16 May | Tabla `wp_falta_uno_slots` con dbDelta + funciones de generación y consulta | ⚪ Pendiente | |
 | 5 | 17 May | Tema custom: header, footer, home con buscador, archive-canchas, single-canchas (mobile-first) | ⚪ Pendiente | Bootstrap 5 utilities only |
 | 6 | 18 May | Calendario FullCalendar.js en ficha de cancha + endpoint AJAX de disponibilidad | ⚪ Pendiente | |
@@ -49,13 +49,15 @@ Convención: 🟢 Completo · 🟡 En curso · 🔴 Bloqueado · ⚪ Pendiente
 
 ### Pendiente para cerrar Día 1
 
-- [ ] **Cleanup DB:** dropear la DB vieja `faltauno` desde phpMyAdmin (sobra ahora que `falta_uno` es la real).
-- [ ] **Plugins base de WP:**
-  - [ ] Instalar y activar **ACF Pro** (licencia a gestionar — Manu).
-  - [ ] Instalar y activar **WP Mail SMTP** (o equivalente).
-- [ ] **Hosting de producción:** decidir proveedor (SiteGround / Cloudways / Hostinger) y dominio. *Diferible — no bloquea Días 2-9.*
-- [ ] **SSL:** depende del hosting. *Diferible.*
+- [x] **Cleanup DB:** DB vieja `faltauno` dropeada desde phpMyAdmin (2026-05-19).
 - [ ] **Custom instructions del proyecto Cowork:** confirmar que las que tenés cargadas dicen "leé `00-MAESTRO`" (lo dicen). Si querés actualizarlas con la versión más completa ver final de esta sesión.
+
+### Diferidos no bloqueantes (no impiden arrancar Día 2)
+
+- [ ] **WP Mail SMTP:** instalar y configurar más adelante, antes del Día 9 (flujo de reserva con emails).
+- [ ] **Hosting de producción:** decidir proveedor (SiteGround / Cloudways / Hostinger) y dominio. *No bloquea Días 2-9.*
+- [ ] **SSL:** depende del hosting.
+- ~~Instalar ACF Pro~~ → **Descartado.** Meta fields nativos en el plugin propio. Ver `§22.4`.
 
 ---
 
@@ -66,6 +68,7 @@ Convención: 🟢 Completo · 🟡 En curso · 🔴 Bloqueado · ⚪ Pendiente
 3. **Carpeta del workspace de docs:** se mantiene `C:\Proyectos\Falta Uno\` (con espacio).
 4. **Material viejo en `futbol/`:** queda como referencia histórica, no entra al canon. La intención es migrar lo conceptualmente útil a WordPress + Bootstrap.
 5. **Estructura de repos Git:** **dos repos separados** (`falta-uno` para código, `falta-uno-docs` para docs), con allowlist en el `.gitignore` del repo de código y meta-docs como snapshot en el repo de docs. Detalle: `§22.3`. (Cierra la decisión diferida #4 que estaba abierta.)
+6. **Sin ACF Pro:** meta fields nativos (`add_meta_box` + `*_post_meta`) dentro del plugin `falta-uno`. Detalle: `§22.4`.
 
 ## Decisiones diferidas (a cerrar pronto)
 
@@ -77,11 +80,10 @@ Convención: 🟢 Completo · 🟡 En curso · 🔴 Bloqueado · ⚪ Pendiente
 
 ## Próxima sesión
 
-**Cerrar completamente el Día 1 antes de tocar código.** Plan acordado con Manu el 2026-05-19. Checklist en orden:
+Día 1 prácticamente cerrado. Lo único pendiente real es:
 
-1. **Cleanup DB:** dropear `faltauno` vieja desde phpMyAdmin (Manu lo puede hacer antes de la sesión).
-2. **ACF Pro:** Manu trae el ZIP de la licencia → instalar y activar en el WP local. Verificar que las opciones de "Custom Fields" aparezcan en el admin.
-3. **SMTP plugin:** instalar WP Mail SMTP, dejarlo configurado para enviar por Gmail (o equivalente) — todavía sin credenciales reales, solo el plugin listo para configurar.
-4. **Decisión diferida — idioma del código/datos.** Confirmar la sugerencia: datos y meta keys en español, hooks/APIs WP en inglés. Registrar en `02-GUIAS-TECNICAS.md §5`.
+1. **Decisión diferida — idioma del código/datos.** Confirmar la sugerencia: datos y meta keys en español (con prefijo `fu_`), hooks/APIs WP en inglés. Registrar en `02-GUIAS-TECNICAS.md §5`.
 
-Cuando esos 4 puntos estén cerrados, el Día 1 queda 🟢 y arrancamos el **Día 2 (bootstrap del plugin)** en la sesión siguiente: crear `falta-uno.php` con header WP + clase `FU_Plugin` + autoloader + activación con CPTs (`canchas`, `reservas`), todo validado con `php -l`. Primer feature del Día 2 inaugura la convención de tags: `fu-plugin-v0.1.0` al cierre del bootstrap.
+Con eso cerrado arrancamos el **Día 2 (bootstrap del plugin)**: crear `wp-content/plugins/falta-uno/falta-uno.php` con header WP + clase `FU_Plugin` + autoloader + activación con CPTs (`canchas`, `reservas`), todo validado con `php -l`. Primer feature del Día 2 inaugura la convención de tags: `fu-plugin-v0.1.0` al cierre del bootstrap.
+
+SMTP (diferido) se ataca antes del Día 9 (flujo de reserva con emails).

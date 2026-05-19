@@ -103,4 +103,35 @@ Detalle completo en `00-MAESTRO.md §2.6`.
 
 ---
 
-*Próxima entrada: §22.4 (pendiente — todavía no surgió).*
+## §22.4 — 2026-05-19 — Sale ACF Pro: meta fields nativos en el plugin propio
+
+**Caso:** El MAESTRO original (sembrado desde el briefing de Franco) listaba **Advanced Custom Fields (ACF Pro)** como dependencia para los meta fields de los CPTs `canchas` y `reservas` (ver §2.2 del MAESTRO en su versión previa). Al llegar al ítem "instalar ACF Pro" del checklist del Día 1, Manu decide **no** usar ACF y hacer toda la administración de campos dentro del plugin custom `falta-uno`.
+
+**Decisión:** Eliminar la dependencia de ACF (ni Pro ni free). Todos los meta fields de `canchas` y `reservas` se registran y se administran con la API nativa de WordPress dentro del propio plugin:
+
+- `add_meta_box()` para las cajas en el editor de cada CPT.
+- `update_post_meta()` / `get_post_meta()` para persistir y leer.
+- Render manual de los inputs en PHP (probablemente con un helper `FU_Meta::render_field()` para no repetir markup).
+- Sanitización y validación en hooks `save_post_<cpt>`.
+
+El plugin sigue siendo uno solo (`wp-content/plugins/falta-uno/`) y absorbe la responsabilidad que antes tercerizaba ACF.
+
+**Por qué:**
+
+1. **Cero dependencias pagas.** ACF Pro cuesta licencia anual. El MVP arranca sin que ese costo entre antes de validar el negocio.
+2. **Control total.** Los meta fields son ~9 en `canchas` y ~9 en `reservas` — bajo volumen, baja complejidad. La API nativa de WP los cubre sin pelearse con ningún plugin de terceros para mover validaciones o lookups.
+3. **Menos magia en el frontend.** Los dueños cargan canchas desde un formulario propio (decisión §2.7 del MAESTRO: "los dueños no tocan el WP admin"). Esa UI ya iba a tener que ser custom — usar ACF para el admin y otra cosa para el frontend duplicaba trabajo.
+4. **Coherencia con la convención `fu_*`.** Las meta keys quedan `fu_cancha_direccion`, `fu_reserva_estado`, etc. — todo bajo nuestro namespace, sin prefijos ajenos.
+
+**Cómo aplica a futuro:**
+
+- **Cualquier campo nuevo de un CPT existente o nuevo** se agrega como meta field nativo. No se vuelve a discutir ACF.
+- **Si en algún momento aparece un caso donde ACF resolvería algo en 10 minutos** (ej. flexible fields, repeater complejo), revisar primero si el caso justifica realmente esa complejidad o si se puede modelar como tabla custom (como ya hicimos con `wp_falta_uno_slots`).
+- **El Día 3 del Plan Fase 1 cambia de scope.** Donde decía "Roles custom + todos los ACF fields", ahora es: "Roles custom + meta boxes nativos para `canchas` y `reservas` + helper `FU_Meta`".
+- **MAESTRO §2.1 y §2.2 actualizados** en esta misma sesión para reflejar el cambio (sacar fila ACF de la tabla del stack y cambiar el header "Campos ACF" por "Meta fields").
+
+**Estado al cierre:** decisión registrada. MAESTRO actualizado. Día 1 pierde el sub-ítem "Instalar y activar ACF Pro" — queda solo SMTP (diferido por Manu) más el cierre del Día 2 que arranca el plugin.
+
+---
+
+*Próxima entrada: §22.5 (pendiente — todavía no surgió).*
