@@ -2,13 +2,15 @@
 
 *Fotografía vigente: qué está hecho, qué está pendiente, en qué día del plan estamos. Se actualiza al cierre de cada sesión.*
 
-*Última actualización: 2026-05-19 (Día 1 del Plan Fase 1, parcial — Git cerrado, faltan plugins y hosting).*
+*Última actualización: 2026-05-21 (Día 1 cerrado, housekeeping de docs + adopción del MANUAL rev 2 — ver `§22.5`).*
 
 ---
 
 ## En una línea
 
-**Día 1 de Fase 1 en curso.** WordPress local funcionando en `http://localhost/falta-uno/` con DB `falta_uno`. Falta el resto del setup (Git, plugins base, plugin custom + theme, hosting).
+**Día 1 de Fase 1 cerrado (2026-05-19).** WordPress local funcionando en `http://localhost/falta-uno/` con DB `falta_uno`, dos repos Git pusheados a GitHub, ACF descartado.
+
+**Sesión 2026-05-21:** housekeeping de docs — adopción del `MANUAL-TRABAJO-CON-CLAUDE.md` rev 2 + `PROMPT-INICIAL-CLAUDE.md` como contrato operativo, limpieza de inconsistencias residuales (ver `§22.5`). No avanza el plan: el calendario sigue al cerrar la decisión diferida de idioma y arrancar Día 2 (bootstrap del plugin).
 
 ---
 
@@ -16,7 +18,7 @@
 
 | Día | Fecha | Tarea | Estado | Notas |
 |---|---|---|---|---|
-| 1 | 13 May | Setup hosting + WordPress + SSL + Git repo + ACF Pro | 🟡 En curso | WP local OK. Git, hosting, SSL y ACF Pro pendientes. Ver detalle abajo. |
+| 1 | 13 May | Setup hosting + WordPress + SSL + Git repo | 🟢 Cerrado | WP local OK + Git cerrado con dos repos pusheados a GitHub (§22.3). Hosting y SSL diferidos no-bloqueantes. ACF Pro descartado (§22.4). |
 | 2 | 14 May | Bootstrap del plugin: activación, autoloader, CPTs canchas y reservas | ⚪ Pendiente | Esperando cerrar Día 1 |
 | 3 | 15 May | Roles custom + meta boxes nativos para canchas y reservas (helper `FU_Meta`) | ⚪ Pendiente | Cambió scope — sin ACF, ver `§22.4` |
 | 4 | 16 May | Tabla `wp_falta_uno_slots` con dbDelta + funciones de generación y consulta | ⚪ Pendiente | |
@@ -61,6 +63,15 @@ Convención: 🟢 Completo · 🟡 En curso · 🔴 Bloqueado · ⚪ Pendiente
 
 ---
 
+## Decisiones tomadas en esta sesión (2026-05-21)
+
+1. **Adopción del `MANUAL-TRABAJO-CON-CLAUDE.md` rev 2 (2026-05-20) y `PROMPT-INICIAL-CLAUDE.md` (2026-05-20) como contrato operativo vigente de Falta Uno.** Ambos meta-docs commiteados al repo `falta-uno-docs` como baseline de la sesión.
+2. **Reescritura de `00-ARRANQUE.md`** alineado al MANUAL: reglas "un comando Git por mensaje", "commit baseline antes de tocar varios archivos", "sigue mal x2 → PARÁ", edición directa de docs (no resúmenes pegables), sección nueva "Trampas del entorno conocidas" con FUSE/autocrlf/editor-trunca.
+3. **Limpieza de cinco inconsistencias ACF Pro** en `01-ESTADO-ACTUAL.md`, `02-GUIAS-TECNICAS.md` y `03-INVENTARIO-TECNICO.md` (decisión §22.4 propagada al resto de los docs canon).
+4. **Cierre formal de la decisión diferida "repos Git"** en `03-INVENTARIO-TECNICO.md` (ya estaba decidido en §22.3, faltaba el reflejo en el inventario).
+
+Detalle completo: `00b-MAESTRO-HISTORIAL.md §22.5`.
+
 ## Decisiones tomadas en esta sesión (2026-05-19)
 
 1. **Naming convention:** `falta-uno` (slugs), `fu_` (funciones), `FU_` (clases), `wp_falta_uno_slots` (tabla), `falta_uno` (DB). Detalle: `00b-MAESTRO-HISTORIAL.md §22.1`.
@@ -80,9 +91,10 @@ Convención: 🟢 Completo · 🟡 En curso · 🔴 Bloqueado · ⚪ Pendiente
 
 ## Próxima sesión
 
-Día 1 prácticamente cerrado. Lo único pendiente real es:
+Con Día 1 cerrado y la adopción del MANUAL rev 2 propagada a los docs canon, lo pendiente real antes de arrancar Día 2 es:
 
-1. **Decisión diferida — idioma del código/datos.** Confirmar la sugerencia: datos y meta keys en español (con prefijo `fu_`), hooks/APIs WP en inglés. Registrar en `02-GUIAS-TECNICAS.md §5`.
+1. **Manu actualiza las custom instructions del proyecto Cowork desde la UI** con el bloque del `MANUAL §1.1` — apuntar a `00-ARRANQUE.md` y *"actualizá los documentos vos directamente — no pases resúmenes"*. Sin esto, cada sesión nueva arranca con el contrato viejo cargado por Cowork.
+2. **Decisión diferida — idioma del código/datos.** Confirmar la sugerencia: datos y meta keys en español con prefijo `fu_` (`fu_cancha_direccion`, `fu_reserva_estado`), hooks/APIs WP en inglés. Registrar en `02-GUIAS-TECNICAS.md §5`. Pasada esta decisión, alinear `00-MAESTRO.md §2.2` que todavía lista las meta keys sin prefijo (pendiente registrado en `§22.5`).
 
 Con eso cerrado arrancamos el **Día 2 (bootstrap del plugin)**: crear `wp-content/plugins/falta-uno/falta-uno.php` con header WP + clase `FU_Plugin` + autoloader + activación con CPTs (`canchas`, `reservas`), todo validado con `php -l`. Primer feature del Día 2 inaugura la convención de tags: `fu-plugin-v0.1.0` al cierre del bootstrap.
 

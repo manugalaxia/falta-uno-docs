@@ -134,4 +134,43 @@ El plugin sigue siendo uno solo (`wp-content/plugins/falta-uno/`) y absorbe la r
 
 ---
 
-*Próxima entrada: §22.5 (pendiente — todavía no surgió).*
+## §22.5 — 2026-05-21 — Adopción del MANUAL rev 2 + PROMPT-INICIAL como contrato operativo
+
+**Caso:** En la sesión del 2026-05-21 Manu trae al workspace de docs dos meta-docs actualizados (`MANUAL-TRABAJO-CON-CLAUDE.md` rev 2 del 2026-05-20 y `PROMPT-INICIAL-CLAUDE.md` del 2026-05-20) consolidados durante las últimas sesiones de Landing+. Los meta-docs traen reglas nuevas que no estaban en `00-ARRANQUE.md` original ni en las custom instructions del proyecto Cowork:
+
+1. **"Un comando Git por mensaje"** — pegar el comando, esperar la salida del operador, recién después el siguiente. No listar 4-5 pasos consecutivos.
+2. **"Commit baseline antes de tocar varios archivos seguidos"** — punto de retorno seguro de 30 segundos.
+3. **"Si entregás algo dos veces y Manu dice 'sigue mal' → PARÁ"** — releer el código canónico desde cero, no entregar otra fix inmediata.
+4. **Edición directa de docs al cierre** — no pasar resúmenes estructurados para que Manu copie y pegue cuando Claude tiene acceso de escritura.
+5. **Trampas del entorno conocidas** — sección nueva con cuatro casos: FS de Cowork (FUSE) que puede truncar archivos al editarlos, `git checkout` con `autocrlf=true` que puede fallar silenciosamente, `git status` desde sandbox vs Git Bash con discrepancias de EOL, editores que truncan al guardar.
+
+Además, al revisar la docs vigente aparecieron cinco inconsistencias residuales por ACF Pro (decisión §22.4 ya tomada pero no propagada): `00-ARRANQUE.md` línea 23 del stack, `02-GUIAS-TECNICAS.md §3` fila "Meta key ACF" y §7 del índice "ACF Pro: import/export", `03-INVENTARIO-TECNICO.md` carpeta `advanced-custom-fields-pro/` en el árbol del plugin, `01-ESTADO-ACTUAL.md` título Día 1 "+ ACF Pro". Adicionalmente `03-INVENTARIO-TECNICO.md` mantenía la sección "Repos Git (cuando se inicialicen)" como decisión diferida cuando ya estaba cerrada en `§22.3`.
+
+**Decisión:**
+
+1. **Adoptar el MANUAL rev 2 y el PROMPT-INICIAL como contrato operativo vigente de Falta Uno.** Ambos meta-docs viven en `C:\Proyectos\Falta Uno\` (raíz del workspace de docs, ya commiteados al repo `falta-uno-docs` como baseline de esta sesión). Cuando se actualicen en otro proyecto, se copia la versión nueva sobre estos y se commitea con mensaje tipo `docs: actualizo MANUAL al snapshot YYYY-MM-DD (rev N)`.
+
+2. **Reescritura completa de `00-ARRANQUE.md`** para reflejar el MANUAL: entorno del operador, edición directa también para docs, "un comando por mensaje" + "commit baseline" + "sigue mal x2 → PARÁ" en reglas de comportamiento, sección nueva "Trampas del entorno conocidas" con los cuatro casos del MANUAL §6, checklist de cierre alineado al MANUAL §5.
+
+3. **Limpieza de las cinco inconsistencias ACF Pro** en `01-ESTADO-ACTUAL.md`, `02-GUIAS-TECNICAS.md` y `03-INVENTARIO-TECNICO.md`. Citas legítimas a la decisión §22.4 (contexto histórico) se mantuvieron; menciones residuales que la contradecían se borraron o reescribieron.
+
+4. **Cierre de la decisión diferida "repos Git"** en `03-INVENTARIO-TECNICO.md` — sección reescrita reflejando los dos repos ya inicializados según §22.3 (allowlist en el de código, lista mínima en el de docs).
+
+**Regla derivada:**
+
+- **Cuando un meta-doc transversal (MANUAL, PROMPT-INICIAL) llega actualizado a un proyecto, no se mete en silencio.** Se commitea como baseline aparte, se reescribe `00-ARRANQUE.md` para alinearlo, se suma entrada al HISTORIAL para que la próxima sesión sepa que el contrato cambió.
+- **Para editar archivos existentes con caracteres no-ASCII (`§`, tildes, eñes, em-dash) en el sandbox de Cowork: NUNCA `Edit` ni `Write` del File API.** Usar bash con heredoc, `sed -i 's#old#new#'` (separador `#` cuando el contenido tiene `/` o `|`), o `python3` con `os.open + os.write + os.fsync + os.close`. Validar siempre post-write con `wc -c`, `tail -c 300`, `file`, y `tr -d -c '\000' | wc -c`. No usar `grep -q $'\0'` para detectar null bytes — falso positivo conocido.
+- **Las custom instructions del proyecto Cowork mandan, pero el MANUAL es la fuente canónica.** Si hay conflicto entre lo que dicen las custom instructions del proyecto y el MANUAL/PROMPT-INICIAL, alinear las custom instructions a la versión del MANUAL — el operador las actualiza desde la UI de Cowork.
+
+**Estado al cierre:**
+
+- Meta-docs (`MANUAL-TRABAJO-CON-CLAUDE.md`, `PROMPT-INICIAL-CLAUDE.md`) commiteados al repo `falta-uno-docs` como baseline de la sesión.
+- `00-ARRANQUE.md` reescrito (~12 KB).
+- `01-ESTADO-ACTUAL.md`, `02-GUIAS-TECNICAS.md`, `03-INVENTARIO-TECNICO.md` limpiados de inconsistencias.
+- Esta entrada §22.5 sumada al HISTORIAL.
+- **Pendiente para Manu (no se puede tocar desde acá):** actualizar las custom instructions del proyecto Cowork desde la UI para que digan *"Siempre leé `00-ARRANQUE.md` antes de responder"* (en vez de `00-MAESTRO`) y *"actualizá los documentos vos directamente — no pases resúmenes para que el operador pegue"* (en vez de *"generá un resumen para actualizar los documentos"*). Bloque sugerido en `MANUAL §1.1`.
+- **Pendiente para próxima sesión:** revisar si `00-MAESTRO.md §2.2` (tablas de meta fields de `canchas` y `reservas`) debería listar las meta keys con prefijo `fu_` para alinear con §22.4 — hoy aparecen como `cancha_direccion`, `reserva_estado` sin prefijo en el MAESTRO mientras §22.4 (y ahora `02-GUIAS §3`) dicen `fu_cancha_direccion`, `fu_reserva_estado`.
+
+---
+
+*Próxima entrada: §22.6 (pendiente — todavía no surgió).*

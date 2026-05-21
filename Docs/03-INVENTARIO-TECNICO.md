@@ -2,7 +2,7 @@
 
 *Mapa de archivos del plugin `falta-uno` y del theme `falta-uno`. Sirve para ubicar funciones, clases y assets sin tener que abrir el IDE. Se actualiza cada vez que se crea, mueve o renombra un archivo del código.*
 
-*Última actualización: 2026-05-19. Estado: estructura objetivo definida desde el briefing — todos los archivos están en `[a crear]`.*
+*Última actualización: 2026-05-21. Estado: estructura objetivo definida desde el briefing — todos los archivos están en `[a crear]`. Repos Git inicializados (§22.3).*
 
 ---
 
@@ -14,7 +14,6 @@ C:\xampp\htdocs\falta-uno\
 ├── wp-content\
 │   ├── plugins\
 │   │   ├── falta-uno\                  # [a crear] — plugin custom (Día 2)
-│   │   ├── advanced-custom-fields-pro\ # [a instalar] — ACF Pro, licencia de Manu
 │   │   └── wp-mail-smtp\               # [a instalar] — SMTP para wp_mail()
 │   ├── themes\
 │   │   └── falta-uno\                  # [a crear] — theme custom (Día 5)
@@ -102,16 +101,14 @@ falta-uno/
 
 ---
 
-## Repos Git (cuando se inicialicen)
+## Repos Git
 
-Pendientes — ver `01-ESTADO-ACTUAL.md` (decisión diferida sobre si un solo repo o dos).
+Inicializados el 2026-05-19 — detalle de la decisión en `00b-MAESTRO-HISTORIAL.md §22.3`. Convención de versionado, tags y flujo de commits documentada en `MANUAL-TRABAJO-CON-CLAUDE.md §3`.
 
-Si va con dos repos (como dice el arranque original):
-
-| Repo | Path local | Qué contiene | `.gitignore` clave |
-|---|---|---|---|
-| `falta-uno` | `C:\xampp\htdocs\falta-uno\wp-content\` (probablemente solo el subdir del plugin+theme) | Plugin + theme custom | `node_modules/`, `vendor/`, `*.log`, `@*`, `.DS_Store`, `.vscode/` |
-| `falta-uno-docs` | `C:\Proyectos\Falta Uno\` | Carpeta `Docs/` + arranque histórico + briefing | `futbol/` (material de referencia, no canon) — *evaluar* |
+| Repo | Path local | Remoto GitHub | Qué contiene | `.gitignore` clave |
+|---|---|---|---|---|
+| `falta-uno` (código) | `C:\xampp\htdocs\falta-uno\` | `manugalaxia/falta-uno` (privado) | Plugin `falta-uno` + theme `falta-uno` | **Allowlist:** ignora `/*` y reabilita solo `wp-content/plugins/falta-uno/` y `wp-content/themes/falta-uno/`. Core de WP, plugins de terceros, `wp-config.php`, `vendor/`, `node_modules/` y logs quedan fuera por construcción |
+| `falta-uno-docs` (docs) | `C:\Proyectos\Falta Uno\` | `manugalaxia/falta-uno-docs` (privado) | Carpeta `Docs/` + meta-docs (`MANUAL-TRABAJO-CON-CLAUDE.md`, `PROMPT-INICIAL-CLAUDE.md`) + material histórico (`futbol/`, `briefing-desarrollador.md`, `arranque-falta-uno.md`) | `Thumbs.db`, `.DS_Store`, `.vscode/`, `*.swp`, `*.swo` |
 
 ---
 

@@ -2,7 +2,7 @@
 
 *Procedimientos operativos puntuales: cómo hacer algo concreto en Falta Uno. Cada guía vive en su propia sección numerada. Para discusiones de "por qué decidimos X" ir al HISTORIAL, no acá.*
 
-*Última actualización: 2026-05-19.*
+*Última actualización: 2026-05-21.*
 
 ---
 
@@ -16,7 +16,7 @@
 | §4 Validación PHP con `php -l` | ✅ Escrita | Antes de entregar cualquier `.php` |
 | §5 Convención de idioma en código y datos | ⚪ Pendiente | Cuando se confirme la decisión diferida |
 | §6 Setup local de XAMPP desde cero | ⚪ Pendiente | Si un dev nuevo arma el entorno |
-| §7 ACF Pro: import/export de field groups | ⚪ Pendiente | Cuando se empiece a tocar ACF en serio (Día 3) |
+| §7 Helper `FU_Meta::render_field()` para meta boxes nativos | ⚪ Pendiente | Cuando se arme el render de los meta fields (Día 3) |
 | §8 SMTP local con WP Mail SMTP | ⚪ Pendiente | Día 10 (testing emails) |
 | §9 MercadoPago sandbox: credenciales y testing | ⚪ Pendiente | Inicio de Fase 2 (integración MP) |
 | §10 Deploy a producción (provider TBD) | ⚪ Pendiente | Día 10 |
@@ -134,7 +134,7 @@ Referencia completa en `00-MAESTRO.md §2.6`. Resumen para tener a mano al crear
 | Constante | `FU_PLUGIN_DIR`, `FU_PLUGIN_VERSION` |
 | Tabla custom | `wp_falta_uno_slots` |
 | Slug CPT | `canchas`, `reservas` (en español, singular conceptual aunque plural gramatical) |
-| Meta key ACF | `cancha_direccion`, `reserva_estado` (snake_case, en español) |
+| Meta key (CPT) | `fu_cancha_direccion`, `fu_reserva_estado` (snake_case, en español, prefijo `fu_` por §22.4) |
 | ID HTML / clase CSS custom | `id="fu-calendario-cancha-{ID}"`, `class="fu-mapa-home"` (solo si no se puede usar Bootstrap) |
 | Endpoint REST | `/wp-json/falta-uno/v1/webhook` |
 | Action AJAX | `wp_ajax_fu_get_slots`, `wp_ajax_nopriv_fu_get_slots` |
