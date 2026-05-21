@@ -2,7 +2,7 @@
 
 *Documento maestro de Falta Uno. Lectura obligatoria al inicio de cada sesión de Cowork (según custom instructions del proyecto). Contiene la fotografía vigente del proyecto: qué es, cómo está armado, y a dónde buscar lo demás.*
 
-*Última actualización: 2026-05-19.*
+*Última actualización: 2026-05-21 — meta keys con prefijo `fu_` (§22.4 + §22.6), capabilities custom con prefijo `fu_`, briefing-desarrollador.md sin atribución (§22.7).*
 
 ---
 
@@ -54,32 +54,32 @@ El título del post es el nombre de la cancha. Meta fields nativos (registrados 
 
 | Campo | Tipo | Descripción |
 |---|---|---|
-| `cancha_direccion` | Texto | Dirección completa |
-| `cancha_lat` | Número | Latitud GPS |
-| `cancha_lng` | Número | Longitud GPS |
-| `cancha_tipo` | Select | `futbol5` / `futbol7` / `futbol11` |
-| `cancha_precio_hora` | Número | Precio base en ARS |
-| `cancha_fotos` | Galería | Array de IDs de adjuntos WP |
-| `cancha_telefono` | Texto | Teléfono de contacto |
-| `cancha_dueno_id` | Número | ID de `wp_users` (dueño) |
-| `cancha_horarios` | Textarea (JSON) | Horarios por día de semana |
-| `cancha_activa` | True/False | 1 = visible, 0 = pendiente de aprobación |
+| `fu_cancha_direccion` | Texto | Dirección completa |
+| `fu_cancha_lat` | Número | Latitud GPS |
+| `fu_cancha_lng` | Número | Longitud GPS |
+| `fu_cancha_tipo` | Select | `futbol5` / `futbol7` / `futbol11` |
+| `fu_cancha_precio_hora` | Número | Precio base en ARS |
+| `fu_cancha_fotos` | Galería | Array de IDs de adjuntos WP |
+| `fu_cancha_telefono` | Texto | Teléfono de contacto |
+| `fu_cancha_dueno_id` | Número | ID de `wp_users` (dueño) |
+| `fu_cancha_horarios` | Textarea (JSON) | Horarios por día de semana |
+| `fu_cancha_activa` | True/False | 1 = visible, 0 = pendiente de aprobación |
 
 #### CPT `reservas`
 
-Meta fields nativos (mismas convenciones que `canchas`):
+Meta fields nativos (mismas convenciones que `canchas` — prefijo `fu_` por §22.4, idioma español por §22.6 / `02-GUIAS-TECNICAS.md §5`):
 
 | Campo | Tipo | Descripción |
 |---|---|---|
-| `reserva_cancha_id` | Número | ID del post cancha |
-| `reserva_jugador_id` | Número | ID de `wp_users` (jugador) |
-| `reserva_fecha` | Fecha | Fecha de la reserva |
-| `reserva_hora_inicio` | Texto | Ej: `19:00` |
-| `reserva_hora_fin` | Texto | Ej: `20:00` |
-| `reserva_monto` | Número | Monto total en ARS |
-| `reserva_estado` | Select | `pendiente` / `confirmado` / `cancelado` / `reembolsado` |
-| `reserva_mp_preference_id` | Texto | ID de preferencia MercadoPago |
-| `reserva_mp_payment_id` | Texto | ID de pago (llega por webhook) |
+| `fu_reserva_cancha_id` | Número | ID del post cancha |
+| `fu_reserva_jugador_id` | Número | ID de `wp_users` (jugador) |
+| `fu_reserva_fecha` | Fecha | Fecha de la reserva |
+| `fu_reserva_hora_inicio` | Texto | Ej: `19:00` |
+| `fu_reserva_hora_fin` | Texto | Ej: `20:00` |
+| `fu_reserva_monto` | Número | Monto total en ARS |
+| `fu_reserva_estado` | Select | `pendiente` / `confirmado` / `cancelado` / `reembolsado` |
+| `fu_reserva_mp_preference_id` | Texto | ID de preferencia MercadoPago |
+| `fu_reserva_mp_payment_id` | Texto | ID de pago (llega por webhook) |
 
 ### §2.3 Tabla custom `wp_falta_uno_slots`
 
@@ -102,8 +102,8 @@ Se registran con `add_role()` en la activación del plugin.
 
 | Rol | Capacidades clave | Descripción |
 |---|---|---|
-| `jugador` | `read`, `crear_reservas` | Busca canchas y hace reservas |
-| `dueno_cancha` | `read`, `gestionar_canchas_propias`, `ver_reservas_propias` | Publica y gestiona sus canchas |
+| `jugador` | `read`, `fu_crear_reservas` | Busca canchas y hace reservas |
+| `dueno_cancha` | `read`, `fu_gestionar_canchas_propias`, `fu_ver_reservas_propias` | Publica y gestiona sus canchas |
 | `administrator` (WP nativo) | Todo | Modera canchas, ve reportes |
 
 El rol se asigna automáticamente al registrarse según qué opción elige el usuario ("Quiero reservar" → jugador / "Soy dueño de cancha" → dueño_cancha).
@@ -173,7 +173,7 @@ Documentos canon en `C:\Proyectos\Falta Uno\Docs\`:
 Material histórico de referencia (no canon):
 
 - `C:\Proyectos\Falta Uno\arranque-falta-uno.md` — bootstrap de primera sesión (no se vuelve a usar).
-- `C:\Proyectos\Falta Uno\briefing-desarrollador.md` — briefing técnico de Franco (referencia de origen).
+- `C:\Proyectos\Falta Uno\briefing-desarrollador.md` — briefing técnico inicial del proyecto (referencia de origen, autor histórico — Falta Uno no tiene dev externo: el código sale de Claude+Manu, ver `§22.7`).
 - `C:\Proyectos\Falta Uno\futbol\` — mockups HTML, doc de onboarding de canchas piloto, sesión 25/abril. Material previo, solo referencia.
 
 ---

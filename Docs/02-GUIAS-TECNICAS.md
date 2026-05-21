@@ -14,7 +14,7 @@
 | §2 Cache-bust con `filemtime()` | ✅ Escrita | Al encolar cualquier CSS/JS del plugin o theme |
 | §3 Naming convention (rápido) | ✅ Escrita | Al crear archivos/funciones/clases nuevas |
 | §4 Validación PHP con `php -l` | ✅ Escrita | Antes de entregar cualquier `.php` |
-| §5 Convención de idioma en código y datos | ⚪ Pendiente | Cuando se confirme la decisión diferida |
+| §5 Convención de idioma en código y datos | ✅ Escrita | Al nombrar cualquier campo, meta key, rol, función, hook o variable nueva |
 | §6 Setup local de XAMPP desde cero | ⚪ Pendiente | Si un dev nuevo arma el entorno |
 | §7 Helper `FU_Meta::render_field()` para meta boxes nativos | ⚪ Pendiente | Cuando se arme el render de los meta fields (Día 3) |
 | §8 SMTP local con WP Mail SMTP | ⚪ Pendiente | Día 10 (testing emails) |
@@ -167,7 +167,40 @@ Si Claude genera un archivo PHP largo en el contenedor antes de entregarlo, vali
 
 ## §5 — Convención de idioma en código y datos
 
-⚪ *Pendiente.* Decisión diferida a confirmar con Manu en próxima sesión. Sugerencia inicial: **datos y meta keys en español, hooks/APIs/funciones del propio WP en inglés (porque vienen así).** A formalizar acá cuando se cierre.
+**Regla:** Los datos y nombres del dominio del negocio (CPTs, meta keys, roles, estados, mensajes de UI) van **en español**. Los hooks, funciones y APIs nativas de WordPress quedan **en inglés** porque vienen así de WP y no se pueden traducir.
+
+Decisión cerrada el 2026-05-21 — detalle en `00b-MAESTRO-HISTORIAL.md §22.6`.
+
+### Aplicación por categoría
+
+| Categoría | Idioma | Ejemplos |
+|---|---|---|
+| Slug de CPT | Español | `canchas`, `reservas` |
+| Meta keys de CPT | Español, prefijo `fu_` | `fu_cancha_direccion`, `fu_reserva_estado`, `fu_cancha_precio_hora` |
+| Slug de rol | Español | `jugador`, `dueno_cancha` |
+| Valores de estado | Español | `pendiente`, `confirmado`, `cancelado`, `reembolsado` |
+| Capabilities custom | Español, prefijo `fu_` | `fu_crear_reservas`, `fu_gestionar_canchas_propias` |
+| Action AJAX custom | Español, prefijo `fu_` | `fu_get_slots`, `fu_crear_reserva`, `fu_webhook_mp` |
+| Endpoint REST custom | Español | `/wp-json/falta-uno/v1/webhook`, `/wp-json/falta-uno/v1/slots` |
+| Hook custom (`do_action`) | Español, prefijo `fu_` | `fu_reserva_confirmada`, `fu_slot_bloqueado` |
+| Filtro custom (`apply_filters`) | Español, prefijo `fu_` | `fu_precio_slot`, `fu_horarios_disponibles` |
+| Mensajes de UI / errores | Español rioplatense | "Reservá tu turno", "Ese horario ya está ocupado", "Cancha pendiente de aprobación" |
+| Constantes del plugin | Inglés convencional + `FU_` | `FU_PLUGIN_DIR`, `FU_PLUGIN_URL`, `FU_PLUGIN_VERSION` |
+| Funciones del plugin | Español, prefijo `fu_` | `fu_get_slots_disponibles()`, `fu_crear_reserva()`, `fu_enqueue_assets()` |
+| Clases del plugin | Inglés-PHP convencional + `FU_` | `FU_Plugin`, `FU_CPT`, `FU_Reservas`, `FU_Pagos` (los nombres de archivos PHP siguen mayúsculas-camel-case) |
+| Tabla custom | Mixto | `wp_falta_uno_slots` (prefijo WP `wp_` + dominio `falta_uno`) |
+| Columnas de tabla custom | Español | `cancha_id`, `fecha`, `hora_inicio`, `hora_fin`, `estado`, `reserva_id`, `precio` |
+| Hooks nativos WP | Inglés (no se cambia) | `add_action`, `wp_enqueue_scripts`, `save_post`, `init` |
+| Funciones nativas WP | Inglés (no se cambia) | `get_post_meta`, `wp_insert_post`, `wp_mail`, `register_post_type` |
+| Variables locales / parámetros | Español | `$cancha_id`, `$fecha`, `$hora_inicio`, `$reserva` |
+
+### Convenciones particulares
+
+- **Sin acentos en identificadores de código.** PHP y SQL aceptan UTF-8 en identificadores pero no es portable. Usar `dueno_cancha` (no `dueño_cancha`), `direccion` (no `dirección`), `telefono` (no `teléfono`).
+- **Sin caracteres especiales en slugs.** Convención WP: solo `[a-z0-9-_]`.
+- **Singular vs plural en meta keys.** Las meta keys van en singular (`fu_cancha_direccion`, no `fu_canchas_direccion`). Los CPTs van en plural gramatical (`canchas`, `reservas`) siguiendo la convención WP estándar.
+- **Comentarios en el código:** español. Es código que va a leer principalmente Manu y Claude en español, no hay valor en traducir.
+- **Strings traducibles con `__()`.** Aunque el text domain `falta-uno` está reservado, en el MVP no se traduce nada — los strings van directos en español. Si en el futuro hay i18n real, ahí se envuelven con `__( 'texto', 'falta-uno' )`.
 
 ---
 

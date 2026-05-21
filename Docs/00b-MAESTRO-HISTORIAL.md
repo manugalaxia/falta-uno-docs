@@ -18,7 +18,7 @@
 
 - El nombre comercial *Falta Uno* (dos palabras con espacio).
 - La carpeta XAMPP que Manu había creado como `faltauno` (todo junto).
-- El briefing técnico de Franco que usa `fulboapp` en todos lados (`fulboapp.php`, `wp_fulboapp_slots`, etc.) — nombre de proyecto anterior, descartado.
+- El briefing técnico inicial del proyecto que usa `fulboapp` en todos lados (`fulboapp.php`, `wp_fulboapp_slots`, etc.) — nombre de proyecto anterior, descartado.
 - Tres alternativas viables: `falta-uno` (con guión), `faltauno` (todo junto), `falta_uno` (con underscore).
 
 **Decisión:** Adoptar la convención WordPress estándar para nombres multi-palabra:
@@ -105,7 +105,7 @@ Detalle completo en `00-MAESTRO.md §2.6`.
 
 ## §22.4 — 2026-05-19 — Sale ACF Pro: meta fields nativos en el plugin propio
 
-**Caso:** El MAESTRO original (sembrado desde el briefing de Franco) listaba **Advanced Custom Fields (ACF Pro)** como dependencia para los meta fields de los CPTs `canchas` y `reservas` (ver §2.2 del MAESTRO en su versión previa). Al llegar al ítem "instalar ACF Pro" del checklist del Día 1, Manu decide **no** usar ACF y hacer toda la administración de campos dentro del plugin custom `falta-uno`.
+**Caso:** El MAESTRO original (sembrado desde el briefing inicial del proyecto) listaba **Advanced Custom Fields (ACF Pro)** como dependencia para los meta fields de los CPTs `canchas` y `reservas` (ver §2.2 del MAESTRO en su versión previa). Al llegar al ítem "instalar ACF Pro" del checklist del Día 1, Manu decide **no** usar ACF y hacer toda la administración de campos dentro del plugin custom `falta-uno`.
 
 **Decisión:** Eliminar la dependencia de ACF (ni Pro ni free). Todos los meta fields de `canchas` y `reservas` se registran y se administran con la API nativa de WordPress dentro del propio plugin:
 
@@ -173,4 +173,90 @@ Además, al revisar la docs vigente aparecieron cinco inconsistencias residuales
 
 ---
 
-*Próxima entrada: §22.6 (pendiente — todavía no surgió).*
+## §22.6 — 2026-05-21 — Convención de idioma en código y datos: español con prefijo `fu_`, infra WP en inglés
+
+**Caso:** Decisión diferida desde la sesión del 2026-05-19 (registrada como #1 en `01-ESTADO-ACTUAL.md`). El briefing técnico inicial del proyecto mezclaba nombres en español (`cancha_direccion`, `reserva_estado`, rol `dueno_cancha`) con hooks de WP en inglés (`add_action`, `get_post_meta`). Al alinear las inconsistencias residuales en la sesión del 2026-05-21 — ver `§22.5` — quedó como pendiente formalizar la convención global y aplicarla a las meta keys del MAESTRO (`§2.2`), las capabilities de los roles (`§2.4`) y los identificadores futuros (functions, hooks custom, AJAX actions, REST endpoints).
+
+**Decisión:** Convención **(b) datos en español, infra WP en inglés**, con prefijo `fu_` para todo lo que sea custom del proyecto.
+
+| Categoría | Idioma | Prefijo |
+|---|---|---|
+| CPT slugs | Español | sin prefijo (es un slug) |
+| Meta keys | Español | `fu_` |
+| Roles | Español | sin prefijo (es un slug) |
+| Capabilities custom | Español | `fu_` |
+| Hooks/filters custom (`do_action`/`apply_filters`) | Español | `fu_` |
+| AJAX actions custom | Español | `fu_` |
+| REST endpoints | Español | namespace `falta-uno/v1` |
+| Funciones del plugin | Español | `fu_` |
+| Clases del plugin | Inglés-PHP (PascalCase) | `FU_` |
+| Constantes | Inglés convencional | `FU_` |
+| Variables locales / parámetros | Español | sin prefijo |
+| Hooks/funciones nativas de WP | **Inglés (no se cambia)** | el que tengan |
+| Columnas de tabla custom | Español | sin prefijo |
+| Mensajes de UI | Español rioplatense | — |
+
+Detalle completo y tabla con ejemplos en `02-GUIAS-TECNICAS.md §5`.
+
+**Por qué:**
+
+1. **Lectura natural para Manu.** Los datos los va a ver Manu en el admin de WP, en exports de DB, en mensajes de error de Claude. `fu_cancha_direccion = "Av. Cabildo 1234"` se lee directo, sin traducir.
+2. **Coherencia con los CPTs.** Los CPTs ya son `canchas` y `reservas` (en español, en el MAESTRO desde §2.2). Si las meta keys de esos CPTs fueran en inglés sería raro (`fu_field_address` adentro de un post `canchas`).
+3. **Continuidad con el briefing inicial.** El briefing arrancó en español para los datos del dominio. Cambiarlo a inglés ahora sería rehacer trabajo sin valor agregado, porque ningún dev externo va a tomar el código (el equipo real es Manu + José socios no-devs + Claude técnico, ver `§22.7`).
+4. **Sin acentos en identificadores.** PHP/SQL aceptan UTF-8 en identificadores pero no es portable. Convención: `dueno_cancha`, no `dueño_cancha`. La regla queda registrada en `02-GUIAS §5`.
+
+**Regla derivada:**
+
+- **Al nombrar cualquier campo, meta key, rol, capability, función, hook custom, filtro custom o action AJAX nuevo, consultar `02-GUIAS-TECNICAS.md §5`.** El nombre se escribe en español, sin acentos, con guion bajo entre palabras, con prefijo `fu_` si es del namespace del proyecto.
+- **Hooks y funciones nativas de WordPress (`add_action`, `get_post_meta`, `wp_enqueue_scripts`, etc.) se usan tal cual.** No traducir, no envolver, no abstraer.
+- **Si en algún momento Falta Uno necesita i18n real** (traducción a otros idiomas), envolver strings de UI con `__( 'texto', 'falta-uno' )`. El text domain `falta-uno` ya está reservado. Pero en el MVP no se envuelve nada.
+
+**Estado al cierre:**
+
+- `02-GUIAS-TECNICAS.md §5` escrita con tabla por categoría y convenciones particulares.
+- `00-MAESTRO.md §2.2` actualizado: 10 meta keys de `canchas` y 9 de `reservas` ahora llevan prefijo `fu_` (ej. `fu_cancha_direccion`, `fu_reserva_estado`).
+- `00-MAESTRO.md §2.4` actualizado: capabilities custom ahora son `fu_crear_reservas`, `fu_gestionar_canchas_propias`, `fu_ver_reservas_propias`.
+- Decisión diferida #1 cerrada en `01-ESTADO-ACTUAL.md`.
+- Esta entrada §22.6 sumada al HISTORIAL.
+
+---
+
+## §22.7 — 2026-05-21 — Corrección del equipo del proyecto: no existe "Franco"
+
+**Caso:** El `arranque-falta-uno.md` original (histórico, no canon) y el sembrado inicial del `00-ARRANQUE.md` listaban un "dev part-time" llamado **Franco** como tercer integrante del proyecto. Ese dato se propagó a `00-MAESTRO.md §3` ("briefing técnico de Franco") y al `00b-MAESTRO-HISTORIAL.md §22.1` / `§22.4` ("briefing de Franco"). Al confirmar el equipo real con Manu durante la sesión del 2026-05-21, sale que **Franco no existe en el proyecto** y que la composición real es otra.
+
+**Decisión:** Registrar la composición real del equipo y limpiar todas las menciones a "Franco" en los docs canon.
+
+Equipo real de Falta Uno:
+
+- **Manu** — socio comercial / producto. Opera Cowork, decide producto/negocio, ejecuta los comandos Git y de filesystem que Claude le indica, testea el resultado en `http://localhost/falta-uno/`. No es desarrollador.
+- **José** — socio comercial / producto. No codea. Su rol exacto en el día a día del producto queda fuera del scope de esta doc por ahora (no afecta las decisiones técnicas).
+- **Claude** (asistente técnico vía Cowork) — escribe el código del plugin y del theme en cada sesión, guía a Manu paso a paso para guardar, validar y commitear.
+
+**No hay dev externo ni part-time.** El código del proyecto sale 100% de la colaboración Claude+Manu.
+
+**Por qué importa:**
+
+1. **La doc canon hablaba de un coordinador con Franco que no existe.** Frases tipo "coordinar con Franco lo que va al backlog" o "si Manu o Franco piden el archivo X" inducen comportamientos equivocados (esperar inputs de Franco, escribir docs pensando en un dev externo que las va a leer).
+2. **El briefing-desarrollador.md no tiene autor confirmado.** Quedó atribuido a Franco por error de redacción inicial. Hoy se trata como "briefing técnico inicial del proyecto, referencia de origen, autor histórico" — sin atribución personal.
+3. **Implicancia operativa.** Como no hay dev externo, las decisiones de "qué cuenta como interfaz pública" o "qué hay que dejar documentado para alguien que no participó de la sesión" cambian. Lo que documentamos es para Manu (no-dev) y para futuras sesiones de Claude, no para un colega técnico.
+
+**Regla derivada:**
+
+- **No volver a usar el nombre "Franco" en docs canon.** Si aparece, es un residual a limpiar.
+- **Cuando se necesite atribuir un archivo histórico** (briefing, mockups, doc previa) y el autor real no está confirmado, escribir "autor histórico, referencia de origen" sin nombre — no inventar atribución.
+- **Las menciones genéricas a "el dev" en futuras docs canon** deben ser reemplazadas por "Claude" (que es quien escribe el código). Excepción: cuando el contexto sea claramente futuro hipotético ("si en algún momento se contrata un dev externo").
+
+**Estado al cierre:**
+
+- `00-ARRANQUE.md` sección "Operador" reescrita como "Operador y equipo" con la composición real.
+- `00-ARRANQUE.md` línea "Equipo" en "Identidad ultra breve" actualizada (2 socios + Claude).
+- `00-ARRANQUE.md` regla "Si Manu o Franco piden 'el archivo X'" → "Si Manu pide 'el archivo X'".
+- `00-MAESTRO.md §3` (índice de docs históricos) — `briefing-desarrollador.md` queda como "briefing técnico inicial del proyecto (referencia de origen, autor histórico)".
+- `00b-MAESTRO-HISTORIAL.md §22.1` y `§22.4` — referencias a "briefing de Franco" cambiadas a "briefing técnico inicial" / "briefing inicial".
+- `arranque-falta-uno.md` (histórico, raíz del workspace) NO se toca — es snapshot del bootstrap original, queda como fuente de verdad de "esto pensábamos en ese momento".
+- Esta entrada §22.7 sumada al HISTORIAL.
+
+---
+
+*Próxima entrada: §22.8 (pendiente — todavía no surgió).*

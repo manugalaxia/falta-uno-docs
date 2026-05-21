@@ -8,9 +8,11 @@
 
 ---
 
-## Operador
+## Operador y equipo
 
-Hablás con **Manu**. Lleva la parte comercial / producto del proyecto, no es desarrollador. El dev part-time se llama **Franco** y trabaja directo sobre el código. Rol de Manu en estas sesiones: tomar decisiones de producto / negocio, mantener la documentación viva del proyecto, coordinar con Franco lo que va al backlog y al roadmap.
+Hablás con **Manu**. Es uno de los dos socios del proyecto y opera la parte comercial / producto, no es desarrollador. El otro socio es **José** — también socio comercial, tampoco codea. El **código del plugin y del theme lo escribe Claude** (vos) en cada sesión, guiando a Manu paso a paso para que guarde, valide localmente con XAMPP, y commitee.
+
+Rol de Manu en estas sesiones: tomar decisiones de producto / negocio, mantener la documentación viva del proyecto, ejecutar los comandos Git y de filesystem que Claude le indica, testear el resultado en `http://localhost/falta-uno/`.
 
 Las respuestas a Manu evitan jerga innecesaria. Cuando hace falta detalle técnico, se explica en términos legibles (no asumir que sabe la diferencia entre `wp_postmeta` y un CPT). Manu no es Git-fluent — todo flujo Git va paso a paso, un comando por mensaje (regla abajo).
 
@@ -28,7 +30,7 @@ Entorno del operador (asumir entre sesiones, no re-preguntar):
 - **Qué hace:** plataforma web para reservar canchas de fútbol en Argentina, con pago online (MercadoPago). Jugadores reservan, dueños de cancha gestionan disponibilidad y reservas. Sin app móvil — todo desde el navegador, responsive.
 - **Stack:** WordPress + plugin custom + tema custom. PHP 8, MySQL 8, JS vanilla, **Bootstrap 5 utilities only** (sin diseño custom todavía), FullCalendar.js, Google Maps, MercadoPago Checkout Pro. **Meta fields nativos** (sin ACF Pro, decisión `§22.4`).
 - **MVP:** 30 de junio 2026.
-- **Equipo:** 1 dev part-time (Franco), 1 operador comercial (Manu).
+- **Equipo:** 2 socios (Manu y José, ambos no-devs) + Claude (asistente técnico que escribe el código).
 
 ## Orden de lectura al inicio de sesión
 
@@ -71,7 +73,7 @@ Heredadas de Landing+ y consolidadas en `MANUAL-TRABAJO-CON-CLAUDE.md` rev 2 (ra
 
 - **Editar directo en disco.** Claude tiene acceso al filesystem (Read, Write, Edit, bash). Cuando hay que modificar un archivo del proyecto — código o doc — lo hace directamente. No pasa snippet al operador para copiar y pegar. Excepción: archivos > 2000 líneas con cambio muy puntual → snippet justificado.
 - **Esto incluye los archivos de documentación.** Al cierre de sesión, las actualizaciones de `00b-MAESTRO-HISTORIAL.md`, `01-ESTADO-ACTUAL.md` y secciones afectadas del MAESTRO se editan directamente y al operador solo se le pasan los comandos `git add` + commit + push. **No se entrega resumen estructurado para pegar a mano cuando hay acceso de escritura.**
-- **Archivos completos para reemplazar, no snippets para insertar.** Si Manu o Franco piden "el archivo X", devolver el archivo entero (excepción de arriba aplica).
+- **Archivos completos para reemplazar, no snippets para insertar.** Si Manu pide "el archivo X", devolver el archivo entero (excepción de arriba aplica).
 - **PHP siempre validado con `php -l` antes de entregar.** Cero excepciones.
 - **Cache-bust con `filemtime(__FILE__)`** en todo encolado de CSS/JS del plugin y del theme. Sin versiones hardcodeadas.
 

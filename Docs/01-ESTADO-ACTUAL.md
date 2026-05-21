@@ -69,8 +69,10 @@ Convención: 🟢 Completo · 🟡 En curso · 🔴 Bloqueado · ⚪ Pendiente
 2. **Reescritura de `00-ARRANQUE.md`** alineado al MANUAL: reglas "un comando Git por mensaje", "commit baseline antes de tocar varios archivos", "sigue mal x2 → PARÁ", edición directa de docs (no resúmenes pegables), sección nueva "Trampas del entorno conocidas" con FUSE/autocrlf/editor-trunca.
 3. **Limpieza de cinco inconsistencias ACF Pro** en `01-ESTADO-ACTUAL.md`, `02-GUIAS-TECNICAS.md` y `03-INVENTARIO-TECNICO.md` (decisión §22.4 propagada al resto de los docs canon).
 4. **Cierre formal de la decisión diferida "repos Git"** en `03-INVENTARIO-TECNICO.md` (ya estaba decidido en §22.3, faltaba el reflejo en el inventario).
+5. **Convención de idioma código/datos (`§22.6`):** datos, meta keys, roles, capabilities, hooks/filters/AJAX custom **en español con prefijo `fu_`**; hooks y funciones nativas de WP **en inglés** porque vienen así. Formalizada en `02-GUIAS-TECNICAS.md §5` con tabla por categoría. Alineado `00-MAESTRO.md §2.2` (meta keys de `canchas` y `reservas` ahora llevan prefijo `fu_`) y `§2.4` (capabilities `fu_crear_reservas`, `fu_gestionar_canchas_propias`, `fu_ver_reservas_propias`). Cierra la decisión diferida #1.
+6. **Corrección del equipo del proyecto (`§22.7`):** salió el dato falso de "dev part-time Franco" que venía del bootstrap inicial. Equipo real = dos socios (Manu + José, ambos no-devs) + Claude como asistente técnico que escribe el código. Reescrita la sección "Operador" del `00-ARRANQUE.md` y limpiadas las menciones a Franco en `00-MAESTRO.md §3` y `00b-HISTORIAL §22.1 / §22.4`.
 
-Detalle completo: `00b-MAESTRO-HISTORIAL.md §22.5`.
+Detalle completo: `00b-MAESTRO-HISTORIAL.md §22.5`, `§22.6`, `§22.7`.
 
 ## Decisiones tomadas en esta sesión (2026-05-19)
 
@@ -83,19 +85,20 @@ Detalle completo: `00b-MAESTRO-HISTORIAL.md §22.5`.
 
 ## Decisiones diferidas (a cerrar pronto)
 
-1. **Idioma del código y de los datos.** El briefing mezcla nombres en español (`cancha_direccion`, `reserva_estado`) y los hooks de WP están en inglés. Convención sugerida: **datos en español, hooks/APIs WP en inglés (porque vienen así de WP)**. A registrar en `02-GUIAS-TECNICAS.md` cuando se confirme.
-2. **Branding mínimo:** color primario, logo provisorio, dominio definitivo. Aunque sea placeholder, fijarlo evita rehacer el theme dos veces.
-3. **Hosting de producción.**
+1. **Branding mínimo:** color primario, logo provisorio, dominio definitivo. Aunque sea placeholder, fijarlo evita rehacer el theme dos veces.
+2. **Hosting de producción.**
+
+*Cerradas en sesiones previas: idioma del código/datos (2026-05-21, §22.6).*
 
 ---
 
 ## Próxima sesión
 
-Con Día 1 cerrado y la adopción del MANUAL rev 2 propagada a los docs canon, lo pendiente real antes de arrancar Día 2 es:
+Con Día 1 cerrado, el contrato operativo del MANUAL rev 2 adoptado, la convención de idioma formalizada y el equipo del proyecto corregido, las dos cosas que quedan antes de arrancar Día 2 son:
 
-1. **Manu actualiza las custom instructions del proyecto Cowork desde la UI** con el bloque del `MANUAL §1.1` — apuntar a `00-ARRANQUE.md` y *"actualizá los documentos vos directamente — no pases resúmenes"*. Sin esto, cada sesión nueva arranca con el contrato viejo cargado por Cowork.
-2. **Decisión diferida — idioma del código/datos.** Confirmar la sugerencia: datos y meta keys en español con prefijo `fu_` (`fu_cancha_direccion`, `fu_reserva_estado`), hooks/APIs WP en inglés. Registrar en `02-GUIAS-TECNICAS.md §5`. Pasada esta decisión, alinear `00-MAESTRO.md §2.2` que todavía lista las meta keys sin prefijo (pendiente registrado en `§22.5`).
+1. **Manu pega el bloque nuevo de custom instructions en la UI de Cowork** (texto y pasos en `Docs/cowork-custom-instructions.md`). Sin esto, cada sesión nueva arranca con el contrato viejo cargado por Cowork.
+2. **(Opcional)** Cerrar las decisiones diferidas que quedan abiertas si tenés data para tomarlas: branding mínimo (color, logo, dominio) y hosting de producción. No bloquean Día 2.
 
-Con eso cerrado arrancamos el **Día 2 (bootstrap del plugin)**: crear `wp-content/plugins/falta-uno/falta-uno.php` con header WP + clase `FU_Plugin` + autoloader + activación con CPTs (`canchas`, `reservas`), todo validado con `php -l`. Primer feature del Día 2 inaugura la convención de tags: `fu-plugin-v0.1.0` al cierre del bootstrap.
+Arrancamos el **Día 2 (bootstrap del plugin)**: crear `wp-content/plugins/falta-uno/falta-uno.php` con header WP + clase `FU_Plugin` + autoloader + activación con CPTs (`canchas`, `reservas`), todo validado con `php -l`. Primer feature del Día 2 inaugura la convención de tags: `fu-plugin-v0.1.0` al cierre del bootstrap.
 
 SMTP (diferido) se ataca antes del Día 9 (flujo de reserva con emails).
