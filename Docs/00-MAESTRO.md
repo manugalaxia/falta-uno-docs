@@ -2,7 +2,7 @@
 
 *Documento maestro de Falta Uno. Lectura obligatoria al inicio de cada sesión de Cowork (según custom instructions del proyecto). Contiene la fotografía vigente del proyecto: qué es, cómo está armado, y a dónde buscar lo demás.*
 
-*Última actualización: 2026-05-21 — meta keys con prefijo `fu_` (§22.4 + §22.6), capabilities custom con prefijo `fu_`, briefing-desarrollador.md sin atribución (§22.7).*
+*Última actualización: 2026-05-23 — sumada §2.8 con la estructura real de plugin v0.1.0 y theme v0.1.0 creados en la sesión (§22.8).*
 
 ---
 
@@ -178,4 +178,57 @@ Material histórico de referencia (no canon):
 
 ---
 
-*Próxima edición esperada: cuando se cierre el Día 2 del Plan Fase 1 (bootstrap del plugin), sumar §2.8 con la estructura real del plugin ya creada.*
+### §2.8 — Estructura real del plugin y del theme (snapshot v0.1.0, 2026-05-23)
+
+Creada en la sesión 2026-05-23 (`§22.8`). Snapshot de bootstrap: lo mínimo para que el sitio sea navegable con contenido real. El detalle archivo por archivo (qué hace cada uno, qué función vive en qué archivo) vive en `03-INVENTARIO-TECNICO.md`.
+
+**Plugin `falta-uno` v0.1.0** (`wp-content/plugins/falta-uno/`, tag `fu-plugin-v0.1.0`):
+
+```
+falta-uno/
+├── falta-uno.php              # bootstrap: header WP + constantes + require + hooks de activación/desactivación
+└── includes/
+    └── class-fu-plugin.php    # clase singleton FU_Plugin: registra CPTs canchas (público, archive /canchas/) y reservas (interno) en el hook init
+```
+
+Lo que **no está todavía** y se va a sumar en los Días 3-4: meta boxes nativos para los meta keys `fu_cancha_*` y `fu_reserva_*` (§2.2), helper `FU_Meta`, roles `jugador` y `dueno_cancha` con `add_role()`, tabla `wp_falta_uno_slots` con `dbDelta()`, clase `FU_Activator` que orqueste todo eso al activar.
+
+**Theme `falta-uno` v0.1.0** (`wp-content/themes/falta-uno/`, tag `fu-theme-v0.1.0`):
+
+```
+falta-uno/
+├── style.css            # header WP + override --bs-primary al verde #00c850 (excepción aceptada §22.8)
+├── functions.php        # supports + menus + enqueue Bootstrap 5.3.3 CDN + Bootstrap Icons 1.11.3 + filemtime cache-bust + admin bar oculta en frontend
+├── index.php            # fallback genérico
+├── header.php           # navbar Bootstrap sticky con brand, menú, botones Ingresar/Registrarse
+├── footer.php           # footer oscuro 3 columnas + copyright
+├── front-page.php       # home: hero + buscador (name=s) + grid de 6 canchas destacadas + CTA dueños
+├── archive-canchas.php  # listado /canchas/ con breadcrumb, buscador, filtros UI de tipo (placeholder hasta Día 3), grid + paginación
+├── single-canchas.php   # ficha de cancha con galería placeholder + datos en "—" hasta meta boxes + contenedor #fu-calendario-cancha listo para FullCalendar (Día 6)
+├── page-login.php       # Template Name "Login (Falta Uno)" — form Bootstrap + nonce fu_login (lógica handler Día 8)
+├── page-registro.php    # Template Name "Registro (Falta Uno)" — form con radio jugador/dueno_cancha + nonce fu_registro
+└── page-mi-panel.php    # Template Name "Mi panel (Falta Uno)" — dashboard cards condicionado por rol, gated por is_user_logged_in()
+```
+
+Stack visual: Bootstrap 5.3.3 + Bootstrap Icons 1.11.3, ambos desde CDN jsdelivr. **Único CSS propio:** ~30 líneas de override de variables en `style.css` (`--bs-primary` y derivados `.btn-primary`/`.btn-outline-primary`/links). Esto es excepción explícita al "cero CSS custom" del `§2.7` y `§22.2`, equiparada con las excepciones ya previstas para FullCalendar y Google Maps. Cualquier nuevo CSS custom requiere su propia §22.X.
+
+**Páginas WP creadas (manualmente en wp-admin) para que los page templates se carguen:**
+
+- `/login/` → plantilla "Login (Falta Uno)"
+- `/registro/` → plantilla "Registro (Falta Uno)"
+- `/mi-panel/` → plantilla "Mi panel (Falta Uno)"
+
+**Lo que el theme tiene como placeholder y se completa en días posteriores:**
+
+| Placeholder visible hoy | Se completa en |
+|---|---|
+| Filtros de tipo en home + archive (chips cambian URL pero no filtran) | Día 3 (meta boxes `fu_cancha_tipo` + hook `pre_get_posts`) |
+| Datos de single-canchas en "—" (dirección, precio, contacto) | Día 3 (meta boxes) |
+| Contenedor `#fu-calendario-cancha` vacío con mensaje "próximamente" | Día 6 (FullCalendar.js + endpoint AJAX `fu_disponibilidad_cancha`) |
+| Mapas en home y single (íconos estáticos) | Día 7 (Google Maps JS API) |
+| Forms de login y registro sin handler (envían POST sin nada que lo procese) | Día 8 (handler con `wp_signon()` + `wp_create_user()` + `add_role()`) |
+| Cards de mi-panel con texto "Se conecta en el Día X" | Día 7 (mis canchas), Día 9 (mis reservas), post-MVP (ingresos) |
+
+---
+
+*Próxima edición esperada: cuando se cierre el Día 3 del Plan Fase 1 (meta boxes + roles + helper `FU_Meta`), actualizar §2.8 con los archivos nuevos del plugin y marcar qué placeholders del theme quedaron conectados.*

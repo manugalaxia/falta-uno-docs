@@ -2,15 +2,15 @@
 
 *Fotografía vigente: qué está hecho, qué está pendiente, en qué día del plan estamos. Se actualiza al cierre de cada sesión.*
 
-*Última actualización: 2026-05-21 (Día 1 cerrado, housekeeping de docs + adopción del MANUAL rev 2 — ver `§22.5`).*
+*Última actualización: 2026-05-23 (Día 2 parcial + Día 5 cerrados: plugin bootstrap mínimo + theme completo — ver `§22.8`).*
 
 ---
 
 ## En una línea
 
-**Día 1 de Fase 1 cerrado (2026-05-19).** WordPress local funcionando en `http://localhost/falta-uno/` con DB `falta_uno`, dos repos Git pusheados a GitHub, ACF descartado.
+**Días 1, 2 (parcial) y 5 cerrados (2026-05-23).** WordPress local OK + plugin `falta-uno` v0.1.0 (CPTs `canchas` y `reservas` vacíos) + theme `falta-uno` v0.1.0 con 11 templates en Bootstrap utilities (verde primario, admin bar oculta). Sitio navegable en `http://localhost/falta-uno/` con 4 canchas dummy cargadas. Repo de código en `a943c0d`, tags `fu-plugin-v0.1.0` y `fu-theme-v0.1.0` pusheados.
 
-**Sesión 2026-05-21:** housekeeping de docs — adopción del `MANUAL-TRABAJO-CON-CLAUDE.md` rev 2 + `PROMPT-INICIAL-CLAUDE.md` como contrato operativo, limpieza de inconsistencias residuales (ver `§22.5`). No avanza el plan: el calendario sigue al cerrar la decisión diferida de idioma y arrancar Día 2 (bootstrap del plugin).
+**Sesión 2026-05-23:** salto del plan — Manu pidió arrancar por el theme. Antes, scaffolding mínimo del plugin (CPTs vacíos, sin meta boxes ni tabla todavía) para que el theme tuviera contra qué renderizar. Theme completo en una sola sesión. Decisión y detalle en `§22.8`.
 
 ---
 
@@ -19,13 +19,13 @@
 | Día | Fecha | Tarea | Estado | Notas |
 |---|---|---|---|---|
 | 1 | 13 May | Setup hosting + WordPress + SSL + Git repo | 🟢 Cerrado | WP local OK + Git cerrado con dos repos pusheados a GitHub (§22.3). Hosting y SSL diferidos no-bloqueantes. ACF Pro descartado (§22.4). |
-| 2 | 14 May | Bootstrap del plugin: activación, autoloader, CPTs canchas y reservas | ⚪ Pendiente | Esperando cerrar Día 1 |
-| 3 | 15 May | Roles custom + meta boxes nativos para canchas y reservas (helper `FU_Meta`) | ⚪ Pendiente | Cambió scope — sin ACF, ver `§22.4` |
-| 4 | 16 May | Tabla `wp_falta_uno_slots` con dbDelta + funciones de generación y consulta | ⚪ Pendiente | |
-| 5 | 17 May | Tema custom: header, footer, home con buscador, archive-canchas, single-canchas (mobile-first) | ⚪ Pendiente | Bootstrap 5 utilities only |
+| 2 | 14 May | Bootstrap del plugin: activación, autoloader, CPTs canchas y reservas | 🟡 Parcial | CPTs `canchas` (público) y `reservas` (interno) registrados con clase singleton `FU_Plugin`. Sin autoloader ni clases adicionales (no requeridas hoy). Detalle: `§22.8`. Resto cae en Día 3-4. |
+| 3 | 15 May | Roles custom + meta boxes nativos para canchas y reservas (helper `FU_Meta`) | ⚪ Pendiente | Cambió scope — sin ACF, ver `§22.4`. Bloqueante de filtros reales de tipo en archive-canchas (hoy son UI placeholder, ver `§22.8`). |
+| 4 | 16 May | Tabla `wp_falta_uno_slots` con dbDelta + funciones de generación y consulta | ⚪ Pendiente | Bloqueante del calendario real en single-canchas (hoy contenedor vacío con placeholder). |
+| 5 | 17 May | Tema custom: header, footer, home con buscador, archive-canchas, single-canchas (mobile-first) | 🟢 Cerrado | Adelantado a la sesión 2026-05-23. 11 templates + override del primario verde como excepción CSS (§22.8). Detalle de archivos en `03-INVENTARIO-TECNICO.md`. |
 | 6 | 18 May | Calendario FullCalendar.js en ficha de cancha + endpoint AJAX de disponibilidad | ⚪ Pendiente | |
 | 7 | 19 May | Google Maps en home y ficha + formulario de carga de cancha (frontend, sin WP admin) | ⚪ Pendiente | |
-| 8 | 20 May | Login/registro custom (sin wp-login.php) + asignación de roles + página `/mi-panel/` | ⚪ Pendiente | |
+| 8 | 20 May | Login/registro custom (sin wp-login.php) + asignación de roles + página `/mi-panel/` | ⚪ Pendiente | Los page templates HTML ya están (page-login.php, page-registro.php, page-mi-panel.php). Falta el handler PHP del POST + `wp_signon()` + `wp_create_user()` + `add_role()` según `fu_rol`. |
 | 9 | 21 May | Flujo completo de reserva sin pago: elige slot → crea reserva → bloquea slot → email | ⚪ Pendiente | |
 | 10 | 22 May | Testing end-to-end + ajustes mobile + SMTP + deploy a producción | ⚪ Pendiente | |
 
@@ -63,6 +63,15 @@ Convención: 🟢 Completo · 🟡 En curso · 🔴 Bloqueado · ⚪ Pendiente
 
 ---
 
+## Decisiones tomadas en esta sesión (2026-05-23)
+
+1. **Salto del plan Día 2 → Día 5 con scaffolding mínimo intermedio (`§22.8`).** Manu pidió arrancar por el theme. Antes del theme se hizo un mini-bootstrap del plugin (solo los CPTs `canchas` y `reservas` vacíos, sin meta boxes ni tabla custom) porque sin CPT registrado los templates `archive-canchas.php` y `single-canchas.php` son código muerto. Plugin v0.1.0 + theme v0.1.0 cerrados en la misma sesión.
+2. **Excepción CSS aceptada para el override del primario de Bootstrap (`§22.8`).** El `style.css` del theme tiene ~30 líneas que sobreescriben `--bs-primary` al verde `#00c850` y derivados puntuales en `.btn-primary` / `.btn-outline-primary` y color de links. Equiparado con las excepciones de FullCalendar y Google Maps de `§22.2`. Cualquier otro CSS custom sigue requiriendo justificación en una §22.X.
+3. **Admin bar de WP oculta en el frontend para todos los usuarios.** Decisión de producto de Manu — sitio público limpio sin la barra negra. El admin sigue accediendo al panel yendo directo a `/wp-admin/`. Implementado en `functions.php` del theme con `add_filter( 'show_admin_bar', '__return_false' )`.
+4. **Filtros de tipo en archive y home son UI placeholder hasta Día 3.** Los chips de Fútbol 5/7/11 cambian el query string pero no filtran porque falta el meta box que pueble `fu_cancha_tipo`. Comentario `// TODO: conectar Día 3` queda en el código.
+
+Detalle completo: `00b-MAESTRO-HISTORIAL.md §22.8`.
+
 ## Decisiones tomadas en esta sesión (2026-05-21)
 
 1. **Adopción del `MANUAL-TRABAJO-CON-CLAUDE.md` rev 2 (2026-05-20) y `PROMPT-INICIAL-CLAUDE.md` (2026-05-20) como contrato operativo vigente de Falta Uno.** Ambos meta-docs commiteados al repo `falta-uno-docs` como baseline de la sesión.
@@ -94,11 +103,15 @@ Detalle completo: `00b-MAESTRO-HISTORIAL.md §22.5`, `§22.6`, `§22.7`.
 
 ## Próxima sesión
 
-Con Día 1 cerrado, el contrato operativo del MANUAL rev 2 adoptado, la convención de idioma formalizada y el equipo del proyecto corregido, las dos cosas que quedan antes de arrancar Día 2 son:
+Con Día 1, Día 2 (parcial) y Día 5 cerrados, lo que sigue para destrabar los placeholders del theme y avanzar el plan real:
 
-1. **Manu pega el bloque nuevo de custom instructions en la UI de Cowork** (texto y pasos en `Docs/cowork-custom-instructions.md`). Sin esto, cada sesión nueva arranca con el contrato viejo cargado por Cowork.
-2. **(Opcional)** Cerrar las decisiones diferidas que quedan abiertas si tenés data para tomarlas: branding mínimo (color, logo, dominio) y hosting de producción. No bloquean Día 2.
+1. **Cerrar Día 3 completo** — los meta boxes son la prioridad alta. Sin ellos: los filtros de tipo en archive y home siguen siendo UI muerta, single-canchas muestra todo en "—" (dirección, precio, teléfono), y no se puede cargar una cancha real con sus datos. Roles `jugador` / `dueno_cancha` con `add_role()` en activación del plugin también van acá.
+2. **Cerrar Día 4** — tabla `wp_falta_uno_slots` con `dbDelta()` en activación + funciones de generación y consulta. Bloqueante del calendario real (Día 6).
+3. **Día 6** — FullCalendar.js enchufado al `#fu-calendario-cancha` que ya está en `single-canchas.php` + endpoint AJAX `fu_disponibilidad_cancha`.
 
-Arrancamos el **Día 2 (bootstrap del plugin)**: crear `wp-content/plugins/falta-uno/falta-uno.php` con header WP + clase `FU_Plugin` + autoloader + activación con CPTs (`canchas`, `reservas`), todo validado con `php -l`. Primer feature del Día 2 inaugura la convención de tags: `fu-plugin-v0.1.0` al cierre del bootstrap.
+Diferidas no bloqueantes (siguen abiertas):
+
+- **Branding mínimo:** color primario cerrado (verde `#00c850`), falta logo provisorio y dominio definitivo.
+- **Hosting de producción.**
 
 SMTP (diferido) se ataca antes del Día 9 (flujo de reserva con emails).

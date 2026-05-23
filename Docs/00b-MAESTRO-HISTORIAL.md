@@ -259,4 +259,58 @@ Equipo real de Falta Uno:
 
 ---
 
-*Próxima entrada: §22.8 (pendiente — todavía no surgió).*
+## §22.8 — Bootstrap del plugin (CPTs vacíos) + theme completo en una sola sesión (Día 2 parcial + Día 5)
+
+*Fecha: 2026-05-23.*
+
+**Caso:**
+
+Manu arrancó la sesión pidiendo el theme directamente, salteando el Día 2 (bootstrap del plugin con CPTs + autoloader + clases) y los Días 3-4 (roles + meta boxes + tabla `wp_falta_uno_slots`) del plan original de Fase 1. Hipótesis razonable: visualmente sentís más progreso viendo el sitio con páginas que registrando hooks en PHP sin nada para mostrar. Pero el theme no se sostiene solo: sin el CPT `canchas` registrado, los templates `archive-canchas.php` y `single-canchas.php` no son reconocidos por WordPress y no se cargan nunca.
+
+**Decisión / Hipótesis:**
+
+Scaffolding mínimo del plugin antes de arrancar el theme, en la misma sesión. Concretamente:
+
+- `wp-content/plugins/falta-uno/falta-uno.php` (header WP + constantes + clase singleton + hooks de activación/desactivación) y `includes/class-fu-plugin.php` (registro de los CPTs `canchas` público con archive y `reservas` interno). **Sin meta boxes, sin helper `FU_Meta`, sin tabla `wp_falta_uno_slots`, sin roles `add_role()`.** Solo los CPTs vacíos. Versión: `0.1.0`. Tag: `fu-plugin-v0.1.0`.
+- Theme completo: 11 archivos (`style.css`, `functions.php`, `header.php`, `footer.php`, `front-page.php`, `archive-canchas.php`, `single-canchas.php`, `index.php`, `page-login.php`, `page-registro.php`, `page-mi-panel.php`). Encolado de Bootstrap 5 CDN + Bootstrap Icons + style.css del tema con cache-bust por `filemtime`. Admin bar oculta en frontend para todos los usuarios. Versión: `0.1.0`. Tag: `fu-theme-v0.1.0`.
+
+Alternativas descartadas:
+
+- *Respetar el roadmap (Día 2 → 3 → 4 → 5).* Habría dado un Día 2 visualmente nulo (todo en PHP sin frontend), seguido de dos días más de metadata sin pantallas. Suma fricción para Manu, que necesita ver progreso visual.
+- *Theme antes que plugin, con datos dummy hardcodeados.* Hubiera funcionado para el día, pero al sumar el plugin después había que volver a tocar los templates para reemplazar dummies por queries reales. Doble laburo.
+
+**Excepción CSS explícita (relacionada con §22.2):**
+
+El theme tiene un `style.css` con ~30 líneas de override de variables Bootstrap (`--bs-primary` y `--bs-primary-rgb` al verde Falta Uno `#00c850`, más overrides puntuales de `.btn-primary` y `.btn-outline-primary` para mantener consistencia en hover/active, y color de links). Esto contradice literalmente la regla `Bootstrap utilities only, cero CSS custom` de `§22.2`. **Excepción aceptada** porque el override del primario no es "diseño custom" sino "configuración de la paleta de marca" — cambiar dos custom properties es menos custom que reemplazar `btn-primary` por una clase propia en cada template. Se equipara con las excepciones ya previstas para FullCalendar y Google Maps en `§22.2`.
+
+**Regla derivada:**
+
+- **Si el theme necesita templates de archive/single de un CPT, el CPT tiene que estar registrado antes — aunque sea vacío.** No es opcional ni "lo dejamos para después". Un registro de CPT son ~30 líneas y media hora; sin eso el template es código muerto.
+- **Override del primario de Bootstrap vía custom properties cuenta como excepción aceptada al "cero CSS custom"**, equivalente a las excepciones de FullCalendar y Maps. Cualquier otro CSS propio sigue siendo violación y requiere su propia entrada §22.X que lo justifique.
+- **Los page templates auxiliares (login, registro, mi-panel) requieren que Manu cree las páginas en wp-admin y les asigne el template** desde el panel "Atributos de página → Plantilla". El template solo no genera URL. Documentar esto en el inventario.
+- **Para mensajes de commit con `-m` en Git Bash sobre Windows, evitar multilinea con caracteres especiales (`(`, `)`, `:`, `§`).** Usar mensajes de una línea cortos y dejar el detalle en el HISTORIAL — el repo es para hash + título, el porqué vive acá.
+
+**Estado al cierre:**
+
+- Plugin `falta-uno` v0.1.0 activo en local, registra CPTs `canchas` y `reservas`. Validado con `php -l`. Cargadas 4 canchas dummy.
+- Theme `falta-uno` v0.1.0 activo en local. 11 templates funcionando, navbar Bootstrap con verde primario, archive y single de canchas operativos, páginas auxiliares creadas y asignadas al template correspondiente. Admin bar oculta. Validado con `php -l`.
+- Commit `a943c0d` en `main` del repo `falta-uno`, dos tags anotados pusheados (`fu-plugin-v0.1.0`, `fu-theme-v0.1.0`).
+- Smoke test completo: 6 URLs visitadas (home, /canchas/, single de cancha, /login/, /registro/, /mi-panel/), todas renderizan sin error.
+
+**Queda pendiente del roadmap (no bloqueante para el siguiente paso visible):**
+
+- **Día 2 (resto):** autoloader + clases adicionales del plugin (cuando aparezca la necesidad — hoy con el singleton `FU_Plugin` alcanza).
+- **Día 3 completo:** roles `jugador` / `dueno_cancha` con `add_role()` en activación + meta boxes nativos para `canchas` (todos los `fu_cancha_*` de `00-MAESTRO.md §2.2`) y `reservas` (`fu_reserva_*`) + helper `FU_Meta`.
+- **Día 4 completo:** tabla `wp_falta_uno_slots` con `dbDelta()` en activación + funciones de generación y consulta de slots.
+- **Día 6:** JS de FullCalendar enchufado al contenedor `#fu-calendario-cancha` de `single-canchas.php` + endpoint AJAX `fu_disponibilidad_cancha` que lee de `wp_falta_uno_slots`.
+- **Día 7:** Google Maps en home (placeholder con ícono ya está) y en single (placeholder en `#fu-mapa`) + form frontend de carga de cancha.
+- **Día 8:** handler de login + registro (los forms HTML ya están en los page templates) + asignación de rol según radio button `fu_rol`.
+- **Día 9:** flujo de reserva sin pago (slot → CPT reserva → bloqueo de slot → email).
+
+**Convención derivada de filtros UI placeholder:**
+
+Los chips de tipo de cancha en `front-page.php` y `archive-canchas.php` están como UI pero no filtran realmente (faltan los meta boxes que pueblen `fu_cancha_tipo`). Cuando los meta boxes existan, conectar vía hook `pre_get_posts` que lea `?tipo=` y agregue `meta_query`. Comentario `// TODO: conectar Día 3` queda visible en los archivos para no perder la referencia.
+
+---
+
+*Próxima entrada: §22.9 (pendiente — todavía no surgió).*
