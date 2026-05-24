@@ -313,4 +313,109 @@ Los chips de tipo de cancha en `front-page.php` y `archive-canchas.php` están c
 
 ---
 
-*Próxima entrada: §22.9 (pendiente — todavía no surgió).*
+## §22.9 — 2026-05-23 — Día 3 cerrado: meta boxes nativos + roles + filtro archive por tipo (plugin v0.2.0)
+
+*Fecha: 2026-05-23.*
+
+**Caso:**
+
+Continuación natural de `§22.8`. Los templates `archive-canchas.php` y `single-canchas.php` del theme estaban leyendo `fu_cancha_*` que devolvían siempre vacío (sin meta boxes para poblarlos), y los chips de tipo en archive y home eran UI placeholder. Día 3 era el desbloqueo más alto en prioridad: una sesión sumaba meta boxes, roles, y filtro real — y dejaba los placeholders del theme desaparecidos sin tocar el frontend.
+
+**Decisión / Hipótesis:**
+
+Día 3 completo en una sola sesión, release `fu-plugin-v0.2.0`. Cuatro archivos nuevos en `wp-content/plugins/falta-uno/includes/`:
+
+- `class-fu-roles.php` — `add_role()` para `jugador` (`read` + `fu_crear_reservas`) y `dueno_cancha` (`read` + `fu_gestionar_canchas_propias` + `fu_ver_reservas_propias`). Suma las tres capabilities al administrator. Patrón `remove_role()` + `add_role()` para idempotencia en re-activaciones. `FU_Roles::limpiar()` queda definido pero no se llama en desactivación — no se borran los roles para no perder asignaciones de usuarios existentes.
+- `class-fu-meta-canchas.php` — meta box "Datos de la cancha" con 8 campos: dirección, latitud, longitud, tipo (select `futbol5`/`futbol7`/`futbol11`), precio/hora, teléfono, dueño (vía `wp_dropdown_users` filtrado por `role__in` con `dueno_cancha` + `administrator`), y activa (checkbox). Nonce + sanitización por tipo + `current_user_can( 'edit_post' )` + skip de autosave/revisiones.
+- `class-fu-meta-reservas.php` — meta box "Datos de la reserva" con 7 campos: cancha (select de canchas publicadas/draft), jugador (`wp_dropdown_users` con `jugador` + `administrator`), fecha, hora inicio, hora fin (HTML5 `<input type="time">`), monto, estado (`pendiente`/`confirmado`/`cancelado`/`reembolsado`). Los `fu_reserva_mp_*` no entran al meta box manual — se llenan vía webhook de MercadoPago (Día 9+). Validaciones regex para fecha (`^\d{4}-\d{2}-\d{2}$`) y horas (`^\d{2}:\d{2}$`); valores inválidos fuerzan `delete_post_meta` (no quedan metas basura).
+- `class-fu-query.php` — `pre_get_posts` en frontend que en archive de canchas suma un `meta_query`. Dos condiciones: (1) `fu_cancha_activa = 1 OR NOT EXISTS` para que canchas pre-Día-3 sin meta sigan apareciendo, y (2) si `?tipo=` está en la whitelist `futbol5|futbol7|futbol11`, se filtra por `fu_cancha_tipo` exacto. Skip en `is_admin()` y queries secundarias.
+
+Cambios en archivos existentes:
+
+- `falta-uno.php` — bump `Version: 0.2.0` + constante `FU_VERSION` + `require_once` de los 4 archivos nuevos.
+- `includes/class-fu-plugin.php` — `__construct()` llama a `FU_Meta_Canchas::init()`, `FU_Meta_Reservas::init()` y `FU_Query::init()`. `activar()` llama a `FU_Roles::registrar()` antes del `flush_rewrite_rules()`.
+
+Alternativas descartadas:
+
+- *Helper `FU_Meta` genérico para registrar meta boxes via array de specs.* Sobreingeniería para dos meta boxes — la duplicación es chica y cada meta box tiene su lógica de sanitización propia. Si llega un tercer CPT con meta box, ahí sí vale el helper.
+- *Día 4 (tabla `wp_falta_uno_slots`) en la misma sesión.* Habría sumado scope sin un closing visible: la tabla sin AJAX del Día 6 enchufado no destraba nada que se vea. Mejor cerrar Día 3 limpio.
+- *Meta boxes para los `fu_reserva_mp_*` (preference_id, payment_id).* Esos campos los pone el webhook automáticamente; un meta box manual sería editable y rompería la integridad. Quedan fuera; cuando llegue Día 9+ se renderiza como read-only en una segunda sección del meta box.
+
+**Decisión de producto que apareció en el medio de la sesión:**
+
+Manu confirmó que el mercado de lanzamiento del MVP es **Bahía Blanca**, no CABA como sugerían los datos dummy. Se documentó como `§22.10` separada. La cancha test cargada durante el test manual (dirección Av. Cabildo 1234, CABA) se editó en el mismo paso a `Av. Cabrera 1250, Bahía Blanca` (lat `-38.7060`, lng `-62.2660`) para no dejar data CABA contaminando la base. Las 4 canchas dummy previas (que no tienen meta `fu_cancha_*` poblado) se limpian cuando aparezca el formulario frontend de carga del Día 7.
+
+**Trampa FUSE atrapada dos veces en la sesión (refuerzo de la regla del arranque):**
+
+El `Write` del File API truncó silenciosamente dos archivos PHP en disco — `class-fu-plugin.php` cortó después de `registrar_cpts()` (perdió `activar()`, `desactivar()` y cierre de la clase), y `falta-uno.php` cortó después de la cuarta línea `require_once` (perdió el `require_once` del bootstrap, el `FU_Plugin::get_instance()` y los dos `register_*_hook`). Ambos casos detectados con balance de llaves desde Python (`6/5` y `1/1 pero tail incorrecto`) — los archivos tenían tail incompleto pese a que el Read posterior los devolvía enteros (el cache FUSE divergía del disco real).
+
+Reescritura con `cat > ... <<'EOF'` desde el sandbox bash + validación con `wc -c` + `tail -c 200` + balance de llaves vía Python resolvió el problema en ambos casos. Confirmado lateralmente con `ls -la` del lado Git Bash (Windows ve los archivos con tamaño correcto y permisos `-rw-r--r--`).
+
+**Regla derivada:**
+
+- **Validación post-`Write` no opcional para CUALQUIER archivo con caracteres no-ASCII o tamaño mediano — incluyendo archivos NUEVOS, no solo edits.** La trampa FUSE del arranque está documentada para edits; queda extendida a creates. Checklist mínimo: `wc -c`, `tail -c 200`, balance de llaves PHP (`opens == closes`). Si alguno falla, restaurar con `cat > ... <<'EOF'` y revalidar.
+- **`grep -o "[{}]"` para localizar dónde se cortó el truncado.** Mostrar línea + carácter de cada `{`/`}` permite identificar exactamente dónde quedó cortada la escritura.
+- **Los meta keys que el theme lee en placeholder hoy son contrato.** Cuando se suman meta boxes, los nombres tienen que coincidir exactamente con los `get_post_meta()` que ya están en los templates. Mantener una lista canon en `00-MAESTRO.md §2.2` y consultarla antes de crear meta boxes nuevos.
+- **`pre_get_posts` tiene que aceptar canchas sin meta (`NOT EXISTS`)** para no romper data dummy histórica. Si en algún momento se decide hacer migración masiva de canchas pre-Día-3, recién ahí endurecemos el filtro a `= 1` estricto.
+- **Para canchas cargadas en wp-admin sin el campo "Visible en el listado" desmarcado explícitamente, default = visible.** El render del meta box pone `checked` si el meta es `''` (post nuevo) o `'1'` (guardado activo). Solo desmarcar manualmente lo oculta.
+
+**Estado al cierre:**
+
+- Plugin `falta-uno` v0.2.0 activo en local. 6 archivos PHP en la carpeta del plugin (1 main + 5 en `includes/`). Validado con `php -l` desde XAMPP — 6/6 sin errores.
+- Roles `Jugador` y `Dueño de cancha` visibles en `wp-admin/user-new.php`. Capabilities sumadas a administrator.
+- Meta boxes funcionando: cancha test cargada con los 8 campos completos, render en single-canchas con todos los datos reales en lugar de placeholders. Update de meta también validado (cambio de dirección CABA → Bahía Blanca).
+- Filtro de tipo en archive funcionando: con chip "Fútbol 5" activo, contador y listado muestran solo la cancha test (las dummy viejas no tienen `fu_cancha_tipo`, quedan excluidas — comportamiento esperado).
+- Meta box de reservas renderea OK con los 7 campos (no se guardó ninguna reserva — solo validación visual).
+- Commit `8a2e577` en `main` del repo `falta-uno`, tag anotado `fu-plugin-v0.2.0` pusheado. Working tree limpio.
+
+**Queda pendiente del roadmap:**
+
+- **Día 4:** tabla `wp_falta_uno_slots` con `dbDelta()` en activación + funciones de generación y consulta. Bloqueante del calendario real (Día 6).
+- **Día 6:** FullCalendar enchufado a `#fu-calendario-cancha` + endpoint AJAX `fu_disponibilidad_cancha`.
+- **Día 7:** form frontend de carga de cancha (saca dependencia del wp-admin) + Google Maps en home/single + limpieza de las 4 canchas dummy.
+- **Día 8:** handler login/registro + asignación automática de rol según `fu_rol` del formulario.
+- **Día 9:** flujo completo de reserva sin pago + emails (requiere SMTP, todavía diferido).
+
+---
+
+## §22.10 — 2026-05-23 — Bahía Blanca como mercado de lanzamiento del MVP
+
+*Fecha: 2026-05-23.*
+
+**Caso:**
+
+Hasta ahora el `00-MAESTRO.md` decía que el MVP se enfocaba en "Argentina" en términos genéricos. Durante el test manual del Día 3, al cargar una cancha de prueba con dirección de CABA (Av. Cabildo 1234), Manu aclaró: "Ahora estamos en Bahía Blanca, y va a ser el punto de partida del proyecto". Esto cambia el alcance del MVP de forma operativa — no técnicamente (todo el código sigue igual), pero sí en datos, geocoding, búsqueda por zona, marketing y onboarding de dueños.
+
+**Decisión / Hipótesis:**
+
+Bahía Blanca (Buenos Aires) como mercado de lanzamiento del MVP. Argentina como mercado de expansión post-MVP cuando el modelo esté validado y se sume captación en otras ciudades.
+
+Implicancias concretas que ya importan en Fase 1:
+
+- Datos dummy y placeholders centrados en Bahía Blanca, no CABA. La cancha test del Día 3 quedó editada a `Av. Cabrera 1250, Bahía Blanca` con coordenadas reales (`-38.7060, -62.2660`).
+- Las 4 canchas dummy previas (cargadas en `§22.8` sin meta de geolocalización) se reemplazan por canchas reales bahienses cuando aparezca el form frontend del Día 7. Mientras tanto siguen visibles en el archive sin filtro por tipo (no rompen nada, solo no son representativas).
+- El centro inicial del Google Maps en home (Día 7) tiene que estar centrado en Bahía Blanca, no en CABA o "Buenos Aires" genérico. Coordenadas del centro de Bahía Blanca: aprox `-38.7196, -62.2724`.
+- Búsqueda por zona en home (input de "zona / barrio") tiene que poblarse con barrios de Bahía Blanca, no de CABA. Captura de barrios típicos: Centro, Universitario, Villa Mitre, Patagonia, Pacífico, Don Bosco, etc. (no canon todavía — definir cuando llegue el form de búsqueda).
+- Captación de dueños de cancha y comunicación de lanzamiento, foco geográfico bahiense.
+
+Alternativas descartadas:
+
+- *Mantener "Argentina" genérico y geolocalizar después.* Hubiera generado datos dummy CABA que después había que limpiar igual. Mejor anclarlo desde el Día 3.
+- *Lanzar simultáneamente en Bahía Blanca + CABA.* Doble el esfuerzo de captación, divide la atención y duplica el riesgo de que ninguna ciudad acumule masa crítica.
+
+**Regla derivada:**
+
+- **Cualquier dato dummy, placeholder o ejemplo creado de acá en adelante usa direcciones, coordenadas y barrios de Bahía Blanca por defecto.** Si una sesión va a generar data dummy de otra ciudad, parar y consultar.
+- **Las features de búsqueda por zona, geocoding y mapas se diseñan con el supuesto "Bahía Blanca primero".** Si una arquitectura no escala a multi-ciudad eso se trata como deuda intencional, no como bug — la escalabilidad geográfica entra cuando se valide el modelo en una ciudad.
+- **El idioma sigue siendo español rioplatense.** No cambia por la decisión de mercado, era ya así.
+
+**Estado al cierre:**
+
+- Decisión registrada acá (`§22.10`).
+- Aplicada en `00-MAESTRO.md §1` (contexto).
+- Aplicada en `01-ESTADO-ACTUAL.md` (línea de introducción).
+- Cancha test del Día 3 con dirección bahiense real validada en el frontend.
+
+---
+
+*Próxima entrada: §22.11 (pendiente — todavía no surgió).*

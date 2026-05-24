@@ -2,15 +2,17 @@
 
 *Fotografía vigente: qué está hecho, qué está pendiente, en qué día del plan estamos. Se actualiza al cierre de cada sesión.*
 
-*Última actualización: 2026-05-23 (Día 2 parcial + Día 5 cerrados: plugin bootstrap mínimo + theme completo — ver `§22.8`).*
+*Última actualización: 2026-05-23 — Día 3 cerrado: meta boxes nativos + roles + filtro archive por tipo (plugin v0.2.0). También: Bahía Blanca confirmada como mercado de lanzamiento del MVP (`§22.10`).*
 
 ---
 
 ## En una línea
 
-**Días 1, 2 (parcial) y 5 cerrados (2026-05-23).** WordPress local OK + plugin `falta-uno` v0.1.0 (CPTs `canchas` y `reservas` vacíos) + theme `falta-uno` v0.1.0 con 11 templates en Bootstrap utilities (verde primario, admin bar oculta). Sitio navegable en `http://localhost/falta-uno/` con 4 canchas dummy cargadas. Repo de código en `a943c0d`, tags `fu-plugin-v0.1.0` y `fu-theme-v0.1.0` pusheados.
+**Días 1, 2, 3 y 5 cerrados (2026-05-23).** WordPress local OK + plugin `falta-uno` v0.2.0 (CPTs `canchas` y `reservas` + meta boxes nativos para los 8 campos de cancha y 7 de reserva + roles `jugador` y `dueno_cancha` + filtro de archive por tipo) + theme `falta-uno` v0.1.0 con 11 templates en Bootstrap utilities (verde primario, admin bar oculta). Sitio navegable en `http://localhost/falta-uno/` con 4 canchas dummy (pre-Día-3, sin meta) + 1 cancha test real bahiense (`Av. Cabrera 1250`). Repo de código en `8a2e577`, tags `fu-plugin-v0.1.0`, `fu-plugin-v0.2.0` y `fu-theme-v0.1.0` pusheados.
 
-**Sesión 2026-05-23:** salto del plan — Manu pidió arrancar por el theme. Antes, scaffolding mínimo del plugin (CPTs vacíos, sin meta boxes ni tabla todavía) para que el theme tuviera contra qué renderizar. Theme completo en una sola sesión. Decisión y detalle en `§22.8`.
+**Mercado de lanzamiento del MVP: Bahía Blanca** (Buenos Aires). Confirmado por Manu el 2026-05-23 durante el test del Día 3 (`§22.10`). Argentina queda como mercado de expansión post-MVP.
+
+**Sesión 2026-05-23 (Día 3):** los placeholders del theme quedaron destrabados — `single-canchas.php` ya muestra dirección/precio/teléfono/tipo reales, los chips del archive filtran de verdad, y los roles están listos para la asignación automática del Día 8. Detalle en `§22.9`.
 
 ---
 
@@ -19,8 +21,8 @@
 | Día | Fecha | Tarea | Estado | Notas |
 |---|---|---|---|---|
 | 1 | 13 May | Setup hosting + WordPress + SSL + Git repo | 🟢 Cerrado | WP local OK + Git cerrado con dos repos pusheados a GitHub (§22.3). Hosting y SSL diferidos no-bloqueantes. ACF Pro descartado (§22.4). |
-| 2 | 14 May | Bootstrap del plugin: activación, autoloader, CPTs canchas y reservas | 🟡 Parcial | CPTs `canchas` (público) y `reservas` (interno) registrados con clase singleton `FU_Plugin`. Sin autoloader ni clases adicionales (no requeridas hoy). Detalle: `§22.8`. Resto cae en Día 3-4. |
-| 3 | 15 May | Roles custom + meta boxes nativos para canchas y reservas (helper `FU_Meta`) | ⚪ Pendiente | Cambió scope — sin ACF, ver `§22.4`. Bloqueante de filtros reales de tipo en archive-canchas (hoy son UI placeholder, ver `§22.8`). |
+| 2 | 14 May | Bootstrap del plugin: activación, autoloader, CPTs canchas y reservas | 🟢 Cerrado | CPTs registrados con clase singleton `FU_Plugin` (§22.8). Sin autoloader formal — el `require_once` explícito desde `falta-uno.php` alcanza para las 4 clases actuales. Si crece, se reevalúa. |
+| 3 | 15 May | Roles custom + meta boxes nativos para canchas y reservas | 🟢 Cerrado | Cerrado el 2026-05-23 (§22.9). 4 archivos nuevos en `includes/`: `class-fu-roles.php`, `class-fu-meta-canchas.php`, `class-fu-meta-reservas.php`, `class-fu-query.php`. Sin helper `FU_Meta` genérico — sobreingeniería para 2 meta boxes. Tag `fu-plugin-v0.2.0`. |
 | 4 | 16 May | Tabla `wp_falta_uno_slots` con dbDelta + funciones de generación y consulta | ⚪ Pendiente | Bloqueante del calendario real en single-canchas (hoy contenedor vacío con placeholder). |
 | 5 | 17 May | Tema custom: header, footer, home con buscador, archive-canchas, single-canchas (mobile-first) | 🟢 Cerrado | Adelantado a la sesión 2026-05-23. 11 templates + override del primario verde como excepción CSS (§22.8). Detalle de archivos en `03-INVENTARIO-TECNICO.md`. |
 | 6 | 18 May | Calendario FullCalendar.js en ficha de cancha + endpoint AJAX de disponibilidad | ⚪ Pendiente | |
@@ -63,7 +65,16 @@ Convención: 🟢 Completo · 🟡 En curso · 🔴 Bloqueado · ⚪ Pendiente
 
 ---
 
-## Decisiones tomadas en esta sesión (2026-05-23)
+## Decisiones tomadas en esta sesión (2026-05-23 — Día 3)
+
+1. **Día 3 completo cerrado como release `fu-plugin-v0.2.0` (`§22.9`).** 4 archivos nuevos: `class-fu-roles.php` (roles `jugador` + `dueno_cancha` con capabilities `fu_crear_reservas`, `fu_gestionar_canchas_propias`, `fu_ver_reservas_propias`), `class-fu-meta-canchas.php` (8 campos: dirección, lat, lng, tipo, precio/hora, teléfono, dueño vía `wp_dropdown_users`, activa), `class-fu-meta-reservas.php` (7 campos editables — los `fu_reserva_mp_*` se llenan vía webhook), `class-fu-query.php` (`pre_get_posts` con whitelist `futbol5|futbol7|futbol11` + `NOT EXISTS` para no romper data dummy histórica).
+2. **No se creó helper `FU_Meta` genérico.** Dos meta boxes no justifican el helper — cada uno tiene su lógica de sanitización propia. Si aparece un tercer CPT con meta box, se reevalúa.
+3. **Bahía Blanca confirmada como mercado de lanzamiento del MVP (`§22.10`).** Cambio operativo (no técnico): datos dummy, geocoding, búsqueda por zona y centro inicial del Google Maps se diseñan con foco bahiense. Argentina queda como mercado de expansión post-MVP. La cancha test del Día 3 se editó de Av. Cabildo 1234 (CABA) a `Av. Cabrera 1250, Bahía Blanca` durante la misma sesión.
+4. **Trampa FUSE reaparecida — dos veces.** El `Write` del File API truncó silenciosamente `class-fu-plugin.php` y `falta-uno.php` durante la sesión. Detectado con balance de llaves desde Python (`6/5` cuando deberían ser `8/8`). Reescritura con `cat > ... <<'EOF'` desde bash resolvió ambos casos. **Regla derivada:** validación post-`Write` (`wc -c` + `tail -c 200` + balance de llaves) ahora aplica también a archivos NUEVOS, no solo a edits. Detalle en `§22.9`.
+
+Detalle completo: `00b-MAESTRO-HISTORIAL.md §22.9`, `§22.10`.
+
+## Decisiones tomadas en esta sesión (2026-05-23 — Día 2 + Día 5)
 
 1. **Salto del plan Día 2 → Día 5 con scaffolding mínimo intermedio (`§22.8`).** Manu pidió arrancar por el theme. Antes del theme se hizo un mini-bootstrap del plugin (solo los CPTs `canchas` y `reservas` vacíos, sin meta boxes ni tabla custom) porque sin CPT registrado los templates `archive-canchas.php` y `single-canchas.php` son código muerto. Plugin v0.1.0 + theme v0.1.0 cerrados en la misma sesión.
 2. **Excepción CSS aceptada para el override del primario de Bootstrap (`§22.8`).** El `style.css` del theme tiene ~30 líneas que sobreescriben `--bs-primary` al verde `#00c850` y derivados puntuales en `.btn-primary` / `.btn-outline-primary` y color de links. Equiparado con las excepciones de FullCalendar y Google Maps de `§22.2`. Cualquier otro CSS custom sigue requiriendo justificación en una §22.X.
@@ -103,11 +114,11 @@ Detalle completo: `00b-MAESTRO-HISTORIAL.md §22.5`, `§22.6`, `§22.7`.
 
 ## Próxima sesión
 
-Con Día 1, Día 2 (parcial) y Día 5 cerrados, lo que sigue para destrabar los placeholders del theme y avanzar el plan real:
+Con Día 1, 2, 3 y 5 cerrados, lo que sigue es destrabar el calendario:
 
-1. **Cerrar Día 3 completo** — los meta boxes son la prioridad alta. Sin ellos: los filtros de tipo en archive y home siguen siendo UI muerta, single-canchas muestra todo en "—" (dirección, precio, teléfono), y no se puede cargar una cancha real con sus datos. Roles `jugador` / `dueno_cancha` con `add_role()` en activación del plugin también van acá.
-2. **Cerrar Día 4** — tabla `wp_falta_uno_slots` con `dbDelta()` en activación + funciones de generación y consulta. Bloqueante del calendario real (Día 6).
-3. **Día 6** — FullCalendar.js enchufado al `#fu-calendario-cancha` que ya está en `single-canchas.php` + endpoint AJAX `fu_disponibilidad_cancha`.
+1. **Cerrar Día 4** — tabla `wp_falta_uno_slots` con `dbDelta()` en activación del plugin + funciones de generación de slots (cuando se publica una cancha o se cambian sus horarios) + función de consulta de disponibilidad por cancha y fecha. Bloqueante del calendario real del Día 6.
+2. **Día 6** — FullCalendar.js enchufado al contenedor `#fu-calendario-cancha` que ya está en `single-canchas.php` + endpoint AJAX `fu_disponibilidad_cancha` que lee de `wp_falta_uno_slots`. Acá empieza a sentirse "el booking real".
+3. **Día 7** — Google Maps en home y en single-canchas (centrado en Bahía Blanca por `§22.10`) + form frontend de carga de cancha (saca dependencia del wp-admin para dueños) + limpieza de las 4 canchas dummy pre-Día-3.
 
 Diferidas no bloqueantes (siguen abiertas):
 

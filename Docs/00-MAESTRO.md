@@ -2,7 +2,7 @@
 
 *Documento maestro de Falta Uno. Lectura obligatoria al inicio de cada sesión de Cowork (según custom instructions del proyecto). Contiene la fotografía vigente del proyecto: qué es, cómo está armado, y a dónde buscar lo demás.*
 
-*Última actualización: 2026-05-23 — sumada §2.8 con la estructura real de plugin v0.1.0 y theme v0.1.0 creados en la sesión (§22.8).*
+*Última actualización: 2026-05-23 — Día 3 cerrado: §2.8 actualizada a plugin v0.2.0 con los 4 archivos nuevos de meta boxes / roles / query (`§22.9`). §1 suma Bahía Blanca como mercado de lanzamiento del MVP (`§22.10`).*
 
 ---
 
@@ -17,6 +17,7 @@
 - **Dónde corre:** navegador (desktop y mobile). Sin app móvil; el sitio es responsive.
 - **Pagos:** MercadoPago Checkout Pro (sandbox para desarrollo, producción al ir live).
 - **MVP target:** 30 de junio 2026.
+- **Mercado de lanzamiento del MVP:** Bahía Blanca (Buenos Aires). Argentina queda como mercado de expansión post-MVP — la captación, los datos dummy, el centro inicial del mapa y la búsqueda por zona se diseñan con foco bahiense (decisión `§22.10`, 2026-05-23).
 
 ### Posicionamiento
 
@@ -178,20 +179,26 @@ Material histórico de referencia (no canon):
 
 ---
 
-### §2.8 — Estructura real del plugin y del theme (snapshot v0.1.0, 2026-05-23)
+### §2.8 — Estructura real del plugin y del theme (snapshot plugin v0.2.0 + theme v0.1.0, 2026-05-23)
 
-Creada en la sesión 2026-05-23 (`§22.8`). Snapshot de bootstrap: lo mínimo para que el sitio sea navegable con contenido real. El detalle archivo por archivo (qué hace cada uno, qué función vive en qué archivo) vive en `03-INVENTARIO-TECNICO.md`.
+Snapshot creado en `§22.8` (plugin v0.1.0 + theme v0.1.0, 2026-05-23) y actualizado en `§22.9` (plugin v0.2.0, misma fecha). El detalle archivo por archivo vive en `03-INVENTARIO-TECNICO.md`.
 
-**Plugin `falta-uno` v0.1.0** (`wp-content/plugins/falta-uno/`, tag `fu-plugin-v0.1.0`):
+**Plugin `falta-uno` v0.2.0** (`wp-content/plugins/falta-uno/`, tag `fu-plugin-v0.2.0`, commit `8a2e577`):
 
 ```
 falta-uno/
-├── falta-uno.php              # bootstrap: header WP + constantes + require + hooks de activación/desactivación
+├── falta-uno.php                            # bootstrap: header WP + constantes FU_VERSION/FU_PATH/FU_URL/FU_FILE + 5 require_once + FU_Plugin::get_instance() + hooks activar/desactivar
 └── includes/
-    └── class-fu-plugin.php    # clase singleton FU_Plugin: registra CPTs canchas (público, archive /canchas/) y reservas (interno) en el hook init
+    ├── class-fu-plugin.php                  # singleton FU_Plugin: registra CPTs canchas + reservas en hook init; en activar() invoca FU_Roles::registrar() + flush_rewrite_rules()
+    ├── class-fu-roles.php                   # FU_Roles: roles jugador + dueno_cancha con capabilities fu_crear_reservas / fu_gestionar_canchas_propias / fu_ver_reservas_propias + sumas las caps al administrator (§22.9)
+    ├── class-fu-meta-canchas.php            # FU_Meta_Canchas: meta box "Datos de la cancha" con 8 campos (dirección, lat, lng, tipo, precio/hora, teléfono, dueño vía wp_dropdown_users, activa); nonce + sanitización por tipo + save_post_canchas
+    ├── class-fu-meta-reservas.php           # FU_Meta_Reservas: meta box "Datos de la reserva" con 7 campos editables (cancha, jugador, fecha, hora_inicio, hora_fin, monto, estado); fu_reserva_mp_* quedan fuera (los llena el webhook Día 9+)
+    └── class-fu-query.php                   # FU_Query: pre_get_posts en archive de canchas, suma meta_query con fu_cancha_activa (= 1 OR NOT EXISTS) y filtro opcional ?tipo= con whitelist futbol5/futbol7/futbol11
 ```
 
-Lo que **no está todavía** y se va a sumar en los Días 3-4: meta boxes nativos para los meta keys `fu_cancha_*` y `fu_reserva_*` (§2.2), helper `FU_Meta`, roles `jugador` y `dueno_cancha` con `add_role()`, tabla `wp_falta_uno_slots` con `dbDelta()`, clase `FU_Activator` que orqueste todo eso al activar.
+Lo que **no está todavía** y se suma en próximos días: tabla `wp_falta_uno_slots` con `dbDelta()` en activación + funciones de slots (Día 4), FullCalendar + endpoint AJAX `fu_disponibilidad_cancha` (Día 6), Google Maps + form frontend de carga de cancha (Día 7), handler de login/registro custom con asignación automática de rol vía `fu_rol` (Día 8), flujo de reserva sin pago + emails (Día 9), integración MercadoPago + webhook (Día 9+).
+
+No se creó helper `FU_Meta` genérico — dos meta boxes no justifican la abstracción (`§22.9`). Tampoco se separó `FU_Activator` — la lógica de activación vive directamente en `FU_Plugin::activar()` por ahora.
 
 **Theme `falta-uno` v0.1.0** (`wp-content/themes/falta-uno/`, tag `fu-theme-v0.1.0`):
 
@@ -222,8 +229,8 @@ Stack visual: Bootstrap 5.3.3 + Bootstrap Icons 1.11.3, ambos desde CDN jsdelivr
 
 | Placeholder visible hoy | Se completa en |
 |---|---|
-| Filtros de tipo en home + archive (chips cambian URL pero no filtran) | Día 3 (meta boxes `fu_cancha_tipo` + hook `pre_get_posts`) |
-| Datos de single-canchas en "—" (dirección, precio, contacto) | Día 3 (meta boxes) |
+| Filtros de tipo en home + archive (chips cambian URL pero no filtran) | ✅ Día 3 cerrado 2026-05-23 (§22.9) — `pre_get_posts` en `class-fu-query.php` lee `?tipo=` con whitelist y suma `meta_query` por `fu_cancha_tipo`. Home sigue como UI placeholder (los chips de home apuntan al archive con `?tipo=`, no filtran in-place); si en algún momento se quiere que la grilla de la home filtre sin recargar, se reabre. |
+| Datos de single-canchas en "—" (dirección, precio, contacto) | ✅ Día 3 cerrado 2026-05-23 (§22.9) — meta box "Datos de la cancha" con 8 campos. Single-canchas ya muestra dirección/precio/teléfono/tipo reales cuando el meta está poblado, y los placeholders de fallback siguen mostrándose para canchas sin meta cargado. |
 | Contenedor `#fu-calendario-cancha` vacío con mensaje "próximamente" | Día 6 (FullCalendar.js + endpoint AJAX `fu_disponibilidad_cancha`) |
 | Mapas en home y single (íconos estáticos) | Día 7 (Google Maps JS API) |
 | Forms de login y registro sin handler (envían POST sin nada que lo procese) | Día 8 (handler con `wp_signon()` + `wp_create_user()` + `add_role()`) |
@@ -231,4 +238,4 @@ Stack visual: Bootstrap 5.3.3 + Bootstrap Icons 1.11.3, ambos desde CDN jsdelivr
 
 ---
 
-*Próxima edición esperada: cuando se cierre el Día 3 del Plan Fase 1 (meta boxes + roles + helper `FU_Meta`), actualizar §2.8 con los archivos nuevos del plugin y marcar qué placeholders del theme quedaron conectados.*
+*Próxima edición esperada: cuando se cierre el Día 4 (tabla `wp_falta_uno_slots` con `dbDelta()` + funciones de slots), sumar bloque al §2.8 con la tabla custom y las funciones de generación/consulta. Y cuando se cierre el Día 6 (FullCalendar + AJAX), marcar el placeholder de calendario como cerrado.*
